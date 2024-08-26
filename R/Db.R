@@ -1,6 +1,6 @@
 
 #' Function to check if a vector properly defines a set of grid coordinates,
-#' i.e. if the values are ordered
+#' i.e. if the values are both sorted in increasing order and regularly spaced
 #'
 #' @param yseq Vector
 #' @param tolRelError Tolerance value to accept that two values are equal
@@ -20,7 +20,7 @@
 #'
 #' @param db Db object
 #' @param Loc Locator object
-#' @param names Vector of names (must be of the same as )
+#' @param names Vector of names (must be at least of the same size as the number of variables)
 #'
 #' @keywords internal
 #'
@@ -30,7 +30,7 @@
   }
   vn=db$getNamesByLocator(Loc)
   if(length(vn)>length(names)){
-    stop("The vector of names should be of the same size (or greater) as the number of variables.")
+    stop("The vector of names should be of the same size as (or greater than) the number of variables.")
   }
   for(i in 1:length(vn)){
     db$setName(vn[i],names[i])
@@ -52,8 +52,8 @@
 #'
 #' @details There are two ways of creating a DbGrid:
 #' \itemize{
-#'   \item Either by specifying the argument \code{coords} and optionally the argument \code{coordnames}. The dimension of the grid is then set by the number of vectors of coordinates given in \code{coords}, and the other arguments are then ignored.
-#'   \item Or by specifying the argument \code{nx} and optionally the arguments \code{dx, x0, coordnames}. The dimension of the grid is then set by the length of \code{nx}, and the other arguments are then ignored.
+#'   \item Either by specifying the argument \code{coords} and optionally the argument \code{coordnames}. Then, the dimension of the grid is set by the number of vectors of coordinates given in \code{coords} and the other arguments are ignored.
+#'   \item Or by specifying the argument \code{nx} and optionally the arguments \code{dx, x0, coordnames}. Then, the dimension of the grid is set by the length of \code{nx}, and the other arguments are ignored.
 #' }
 #'
 #' @return A DbGrid object.
@@ -378,9 +378,7 @@ addVarToDb<-function(db,var,vname){
 #'
 addSel<-function(db,sel){
   if(length(sel)!=nrow(db[])){
-    stop(paste0("The size of the selection vector (",length(sel),
-                ") should be the same as the number of points in the Db (",
-                nrow(db[]),")"))
+    stop(paste0("The size of the selection vector (",length(sel), ") should be the same as the number of points in the Db (",nrow(db[]),")"))
   }
   db$deleteColumns(names = "Selection")
   err=db$addSelection(tab = sel, name = "Selection")
@@ -515,5 +513,3 @@ summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
   return(as.data.frame(res))
 
 }
-
-
