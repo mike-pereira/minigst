@@ -170,7 +170,8 @@ addLines<-function(plt=last_plot(),a=NULL,b=NULL,h=NULL,v=NULL,color="black",lin
 #' @param plt A \pkg{ggplot2} plot object.
 #' @param x,y Coordinates of the points.
 #' @param color Name of the color of the points.
-#' @param linetype Type of line, specified by either an integer (0-6) or a name (0 = "blank", 1 = "solid", 2 = "dashed", 3 = "dotted", 4 = "dotdash", 5 = "longdash", 6 = "twodash").
+#' @param shape Type of point, specified by either an integer (0-25) or a name, see \code{\link{vignette("ggplot2-specs")}}
+#' @param size Size of the point in mm.
 #'
 #' @return A \pkg{ggplot2} object containing the updated plot.
 #'
@@ -186,20 +187,16 @@ addLines<-function(plt=last_plot(),a=NULL,b=NULL,h=NULL,v=NULL,color="black",lin
 #' # Create a plot of  the variable Elevation
 #' plt=dbplot_point(db=db,size="Elevation")
 #'
-#' # Add  a vertical line to the plot
-#' plt=addLines(plt=plt,v=300,color="orange")
-#'
-#' # Add a  line y = 5 * x +100
-#' plt=addLines(plt=plt,a=5,b=100,color="blue",linetype=2)
+#' # Add two triangular-shaped, orange points the plot
+#' plt=addPoints(plt=plt,x=c(100,400),y=c(600,1100),color="orange", shape = 17, size = 3)
 #'
 #' # Display the plot
 #' print(plt)
 #'
 #'
-addPoints<-function(plt,a=NULL,b=NULL,h=NULL,v=NULL,color="black",linetype=1){
-  
+addPoints<-function(plt=last.plot(),x=NULL,y=NULL,color="black", shape = 16, size = 1){
+  plt = plt + geom_point(aes(x=x,y=y), colour = color, shape = shape, size = size)
   return(plt)
-  
 }
 
 
