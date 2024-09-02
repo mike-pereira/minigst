@@ -268,7 +268,7 @@ vario_map<-function(db,vname,gridRes=20,plot=T){
 #'
 #' The fitting function first tries to fit a model containing all the structures specified in \code{struct}. if \code{pruneModel = TRUE},
 #' this model is pruned, i.e. the structures associated with negligible variances are discarded from the model, and a new fit is performed.
-#' Thes last two steps are repeated until no basic structures can be removed.
+#' These last two steps are repeated until no basic structures can be removed.
 #'
 #' @return A \pkg{gstlearn} Model object containing the fitted model.
 #'

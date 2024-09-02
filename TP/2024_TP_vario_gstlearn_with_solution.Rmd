@@ -1,7 +1,7 @@
 ---
   title: "Variography using R/gstlearn - Correction"
   author: "Thomas Romary, Fabien Ors, Lucia Clarotto, Mike Pereira, and Xavier Freulon"
-  date: "Option Géostatistique 2023"
+  date: "Option Géostatistique 2024"
   output:
   pdf_document:
   number_sections: yes

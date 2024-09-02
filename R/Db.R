@@ -78,47 +78,47 @@
 #'
 #'
 createDbGrid<-function(coords=NULL,nx=NULL,dx=NULL,x0=NULL,coordnames=NULL){
-
+  
   dbG=NULL
-
+  
   if(!is.null(coords)){
-
+    
     if(is.list(coords)){
-
+      
       checkCoords=unlist(lapply(coords, .checkIfRegStep))
       if(prod(checkCoords)!=1){
         stop("Check the coordinates supplied in coords: one or several of them are not sorted in increasing order or not regularly spaced.")
       }
-
+      
       ndim=length(coords)
       if(!is.null(coordnames)){
         if(length(coordnames)!=ndim){
           stop(paste0("The size of the argument coordnames (",length(coordnames),") must be the same size as coords (",ndim,")."))
         }
       }
-
+      
       dbG=DbGrid_create(nx=unlist(lapply(coords, function(v){length(v)})),
                         dx=unlist(lapply(coords, function(v){(v[2]-v[1])})),
                         x0=unlist(lapply(coords, function(v){(v[1])})),
                         flagAddSampleRank=FALSE)
       .resetNames(dbG,ELoc_X(),coordnames)
-
+      
     }else{
       stop("The argument coords must be a list containing the coordinates of the grid points in each dimension.")
     }
   }else{
-
+    
     if(!is.null(nx)){
-
+      
       ndim=length(nx)
       if(!is.null(coordnames)){
         if(length(coordnames)!=ndim){
           stop(paste0("The size of the argument coordnames (",length(coordnames),") must be the same size as nx (",ndim,")."))
         }
       }
-
+      
       if(!is.null(dx)){
-
+        
         if(length(dx)==1){
           dx=rep(dx,ndim)
         }else{
@@ -126,45 +126,45 @@ createDbGrid<-function(coords=NULL,nx=NULL,dx=NULL,x0=NULL,coordnames=NULL){
             stop(paste0("The size of the argument dx (",length(dx),") must be 1 or the same size as nx (",ndim,")."))
           }
         }
-
+        
         if(!is.null(x0)){
-
+          
           if(length(x0)!=ndim){
             stop(paste0("The size of the argument x0 (",length(x0),") must be the same size as nx (",ndim,")."))
           }
           dbG=DbGrid_create(nx=nx,dx=dx,x0=x0,flagAddSampleRank=FALSE)
           .resetNames(dbG,ELoc_X(),coordnames)
-
+          
         }else{
-
+          
           dbG=DbGrid_create(nx=nx,dx=dx,flagAddSampleRank=FALSE)
           .resetNames(dbG,ELoc_X(),coordnames)
-
+          
         }
-
+        
       }else{
-
+        
         if(!is.null(x0)){
-
+          
           if(length(x0)!=ndim){
             stop(paste0("The size of the argument x0 (",length(x0),") must be the same size as nx (",ndim,")."))
           }
           dbG=DbGrid_create(nx=nx,x0=x0,flagAddSampleRank=FALSE)
           .resetNames(dbG,ELoc_X(),coordnames)
-
+          
         }else{
-
+          
           dbG=DbGrid_create(nx=nx,flagAddSampleRank=FALSE)
           .resetNames(dbG,ELoc_X(),coordnames)
-
+          
         }
-
+        
       }
     }else{
       stop("You must at least supply the argument coords or the argument nx.")
     }
   }
-
+  
   return(dbG)
 }
 
@@ -178,7 +178,7 @@ createDbGrid<-function(coords=NULL,nx=NULL,dx=NULL,x0=NULL,coordnames=NULL){
 #' @param coordnames A vector containing the names of the columns of \code{df} that define the spatial coordinates of the data.
 #' @param isGrid Whether the data in \code{df} should be loaded as a set of isolated points (i.e. a Db) or as a grid (i.e. a DbGrid).
 #'
-#' @details When loading grid data in \code{df}, one should make sure that the data in df contain all the points of the grid.
+#' @details When loading grid data in \code{df}, if the data points are a subset of a grid, a boolean variable \code{Sel} is added to the DbGrid to indicate if each point belong to the initial dataset
 #'
 #' Calling the function \code{dfToDbGrid} is the same as calling the function \code{dfToDb} with the option \code{isGrid=TRUE}.
 #'
@@ -207,31 +207,31 @@ createDbGrid<-function(coords=NULL,nx=NULL,dx=NULL,x0=NULL,coordnames=NULL){
 #' dbG
 #'
 dfToDb<-function(df,coordnames,isGrid=FALSE){
-
+  
   if(class(df)!="data.frame"){
     stop("The argument 'df' must be a dataframe.")
   }
-
+  
   ## Check coordinate names
   var_name=colnames(df)
   if(length(intersect(var_name,coordnames))!=length(coordnames)){
     stop("Check the variable names in coordnames: one or several of the supplied names are absent from the dataframe.")
   }
-
+  
   if(!isGrid){
-
+    
     ## Create Db
     data = Db() # creating the data base
     for (vn in var_name) {data[vn] = suppressWarnings(as.numeric(df[,vn]))}
     ## Set coordinates
     err = data$setLocators(names = coordnames, locatorType = ELoc_X(), cleanSameLocator = TRUE)
-
+    
     return(data)
-
+    
   }else{
-
+    
     tolDiff=1e-6
-
+    
     ndim=length(coordnames)
     coords=list()
     for(i in 1:ndim){
@@ -241,32 +241,51 @@ dfToDb<-function(df,coordnames,isGrid=FALSE){
     if(prod(checkCoords)!=1){
       stop("The grid coordinates supplied in df are not regularly spaced.")
     }
-
+    
     # Create DbGrid
     dbG=createDbGrid(coords=coords,coordnames = coordnames)
-
-    if(max(abs(dbG[,coordnames]-df[,coordnames]))<tolDiff){
-
-      ## The coordinates coincide, we can simply copy the variables
-      var_name=setdiff(colnames(df),coordnames)
-      for (vn in var_name) {dbG[vn] = suppressWarnings(as.numeric(unlist(df[,vn])))}
-
-    }else{
-      warnings("The coordinates in df and in the Db are not aranged in the same order. Consequently, the variables from df are migrated to the closest grid point in the Db.")
-
-      ## Create Db
+    if (dbG$getSampleNumber() == nrow(df)) {
+      if(max(abs(dbG[,coordnames]-df[,coordnames]))<tolDiff){
+        
+        ## The coordinates coincide, we can simply copy the variables
+        var_name=setdiff(colnames(df),coordnames)
+        for (vn in var_name) {dbG[vn] = suppressWarnings(as.numeric(unlist(df[,vn])))}
+        
+      }else{
+        warnings("The coordinates in df and in the Db are not aranged in the same order. Consequently, the variables from df are migrated to the closest grid point in the Db.")
+        
+        ## Create Db
+        data = Db() # creating the data base
+        for (vn in var_name) {data[vn] = suppressWarnings(as.numeric(df[,vn]))}
+        ## Set coordinates
+        err = data$setLocators(names = coordnames, locatorType = ELoc_X(), cleanSameLocator = TRUE)
+        
+        DbGrid_migrateAllVariables(data,dbG,flagAddSampleRank = FALSE)
+      }
+    }else{ #if the gridded points are not a discretization of a rectangular parallelepiped
+      if(ncol(df)<=length(coords)){
+        data = cbind(data,rep(1,nrow(df)))
+      }
       data = Db() # creating the data base
       for (vn in var_name) {data[vn] = suppressWarnings(as.numeric(df[,vn]))}
       ## Set coordinates
       err = data$setLocators(names = coordnames, locatorType = ELoc_X(), cleanSameLocator = TRUE)
-
-      DbGrid_migrateAllVariables(data,dbG,flagAddSampleRank = FALSE)
+      ddx = NULL
+      for(i in 1:ndim){
+        ddx=c(ddx,unique(diff(coords[[i]])))
+      }
+      dbG = DbGrid_createCoveringDb(data,dx = ddx)
+      err = migrateMulti(dbin=data, dbout = dbG,  names = names(df)[(ndim+1):length(var_name)], namconv=NamingConvention())
+      # gérer la sélection
+      res = dbG$addSelection(tab = !is.na(dbG[var_name[ndim+1]]), name = "Sel")
     }
-
+    
+    
+    
     return(dbG)
-
+    
   }
-
+  
 }
 
 
@@ -275,9 +294,9 @@ dfToDb<-function(df,coordnames,isGrid=FALSE){
 #' @export
 #'
 dfToDbGrid<-function(df,coordnames){
-
+  
   return(dfToDb(df,coordnames,isGrid=TRUE))
-
+  
 }
 
 
@@ -317,27 +336,27 @@ dfToDbGrid<-function(df,coordnames){
 #' db$display()
 #'
 addVarToDb<-function(db,var,vname){
-
+  
   if(is.null(dim(var))){
     N=length(var)
     var=as.matrix(var,ncol=1)
   }else{
     N=nrow(var)
   }
-
+  
   if(N!=nrow(db[])){
     stop("The variables should have the same length as the number of points in the Db.")
   }
   if(length(vname)!=ncol(var)){
     stop("The number of variable names should be the same as the number of variables.")
   }
-
+  
   for(i in 1:length(vname)){
     db[vname[i]]=var[,i]
   }
-
+  
   return(invisible(NULL))
-
+  
 }
 
 
@@ -476,25 +495,25 @@ setVar<-function(db,vname){
 #' print(sumStats)
 #'
 summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
-
+  
   if(length(intersect(colnames(db[]),vname))<length(vname)){
     stop("Check the variable names: one or several of the supplied names are absent from the Db.")
   }
   if(length(stat)<=0){
     stat=c("NUM","MIN","MAX","MEAN","STDV","MED")
   }
-
+  
   if(onlyCommon){
     id_dat=which(!is.na(rowSums(db[,vname])))
   }else{
     id_dat=1:nrow(db[])
   }
-
+  
   if(length(db$getNamesByLocator(ELoc_SEL())>0)){
     id_dat=intersect(id_dat,which(apply(as.matrix(db[db$getNamesByLocator(ELoc_SEL())]),1,prod)==1))
   }
-
-
+  
+  
   res=NULL
   nres=NULL
   for(sname in stat){
@@ -505,7 +524,7 @@ summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
               MEAN = {apply(db[id_dat,vname],2,function(v){mean(v,na.rm=T)})},
               STDV = {apply(db[id_dat,vname],2,function(v){sd(v,na.rm=T)})},
               MED = {apply(db[id_dat,vname],2,function(v){median(v,na.rm=T)})})
-
+    
     if(!is.null(st)){
       nres=c(nres,sname)
       res=cbind(res,st)
@@ -513,7 +532,7 @@ summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
   }
   colnames(res)=nres
   return(as.data.frame(res))
-
+  
 }
 
 

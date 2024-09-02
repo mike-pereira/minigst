@@ -193,7 +193,7 @@ addLines<-function(plt,a=NULL,b=NULL,h=NULL,v=NULL,color="black",linetype=1){
 #' print(plt)
 #'
 dbplot_grid<-function(dbGrid,color=NULL, contour=NULL, colValLimits=NULL,
-                      cmap=NULL, naColor=NA,
+                      cmap='viridis', naColor=NA,
                       colorLegendTitle=NULL,contourLegendTitle=NULL,
                       asp=0,
                       xlab = NA, ylab = NA, title = NA,...){

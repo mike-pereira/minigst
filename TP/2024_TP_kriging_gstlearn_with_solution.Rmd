@@ -1,0 +1,315 @@
+---
+  title: "Variography using R/gstlearn - Correction"
+  author: "Thomas Romary, Fabien Ors, Lucia Clarotto, Mike Pereira, and Xavier Freulon"
+  date: "Option Géostatistique 2024"
+  output:
+  pdf_document:
+  number_sections: yes
+  toc: yes
+  editor_options: 
+    chunk_output_type: console
+  chunk_output_type: inline
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+rm(list=ls())
+
+library(minigst)
+```
+
+# Preamble
+
+
+```{r loading_gstlearn}
+library(gstlearn)
+library(ggplot2)
+library(ggpubr)
+OptCst_defineByKey("ASP",0)
+```
+
+
+## Loading the Meuse dataset
+
+```{r loading_data_set}
+library(sp) # load library
+data(meuse) # load data
+data(meuse.grid) # load target grid
+```
+
+
+Create the data Db
+
+```{r loading_in_Db}
+
+## Create Db from dataframe
+data=dfToDb(meuse,coordnames = c("x","y"))
+
+## Add log concentrations
+var_name = c( "cadmium", "copper", "lead", "zinc")
+addVarToDb(data,var=log(meuse[,var_name]),vname = paste0("log_",var_name))
+
+# Plot the data
+
+dbplot_point(data,size="log_cadmium",sizeRange = c(0.1,3), pointColor = "red",
+             xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium")
+
+```
+
+Create the target (grid) Db
+
+```{r create the target (grid dB)}
+target = dfToDbGrid(meuse.grid,coordnames = c('x','y'))
+
+# Plot the distance covariate (see universal kriging)
+
+dbplot_grid(target, color='dist',title='Distance to the river')
+```
+
+# Kriging using R
+
+## Model of variogram
+
+1. With gstlearn, adjust an isotropic variogram model (impose an **exponential structure**) and extract its parameters (scale and sill).
+
+```{r}
+# experimental variogram
+varioexp_iso = vario_exp(data,vname="log_cadmium",nlag=20, dlag=100.)
+
+# fitting the model with the selected basic structures
+struct_names=c("EXPONENTIAL")
+model_iso=model_fit(varioexp_iso,struct=struct_names)
+# display of the model
+model_iso$display()
+
+# plot of the experiment variogram and the fitted model
+plot_vario(varioexp_iso,model = model_iso,pairDisplay = "size",
+           title="Model adjustment for log cadmium")
+
+## Extract scale (à warper ?)
+
+Range = model_iso$getCova(0)$getRanges()[1]
+
+## Extract sill
+
+Sill = model_iso$getCova(0)$getSill(0,0)
+
+```
+
+2. Implement a function to evaluate the covariance model for a given lag using the parameters previsouly extracted.
+
+```{r}
+## Covariance function
+modelCov_exp <- function(h,range,sill){
+  # returns the value of exponential covariance at lag h
+  sill*exp(-(h/range))
+}
+```
+
+## Simple kriging
+
+1. Implement the simple kriging estimate and the kriging error standard deviation (on a unique neighborhood) to estimate the concentration of cadmium on the points defined in `data`. 
+
+a) Build a matrix containing the data (grid and concentration values) and compute the mean used for simple kriging.
+
+```{r}
+## Data matrix
+
+DbCadmium = meuse[,1:3]
+DbCadmium$cadmium = log(DbCadmium$cadmium)
+
+DbCadmium
+
+## Mean of observations
+
+meanCadmium = mean(DbCadmium[,3])
+
+meanCadmium
+
+```
+
+b) Build the matrices of covariance values between pairs of data points and between data points and target points. NB : the range extracted from the gstlearn adjustment is the practical range; the theoretical range is called "scale".
+
+```{r}
+## Convert Range into scale parameter
+
+Range = Range/-log(.05)
+
+## Distance matrix between every pair of observation points
+
+distDbCadmium = sqrt(outer(DbCadmium$x, DbCadmium$x, "-")^2 + outer(DbCadmium$y, DbCadmium$y, "-")^2)
+
+## Corresponding covariance matrix
+
+covDbCadmium  = modelCov_exp(distDbCadmium, range = Range, sill = Sill)
+
+## Distance matrix between every pair  (observation point, target point)
+
+distTargetGrid = sqrt(outer(DbCadmium$x, meuse.grid$x, "-")^2 + outer(DbCadmium$y, meuse.grid$y, "-")^2)
+
+## Corresponding covariance matrix
+
+covTargetGrid = modelCov_exp(distTargetGrid, range = Range, sill = Sill)
+
+```
+
+c) Build the kriging estimates and compute the standard deviation of kriging error.
+
+```{r}
+## Compute simple kriging weights
+
+SKweights = solve(covDbCadmium, covTargetGrid)
+
+## Simple kriging estimate
+
+SKestim = meanCadmium + t(SKweights) %*% (DbCadmium$cadmium - meanCadmium)
+
+## Kriging variance
+SKvar = Sill - apply(SKweights * covTargetGrid, 2, sum)
+#SKvar=cov-diag(t(SKweights)%*%covTargetGrid) # equivalent to above but numerically less efficient
+
+## Kriging standard deviation
+SKsd = sqrt(SKvar)
+
+```
+
+2. Plot the maps of the estimated concentration and the standard deviation of kriging error. Use either the function `bubblePlot()` from the library `fields`.
+
+```{r}
+library(fields)
+
+## Kriging plot using bubblePlot
+
+bubblePlot(meuse.grid$x, meuse.grid$y, SKestim, asp=1)#, nx=length(unique(meuse.grid$x)), ny=length(meuse.grid$y))
+points(DbCadmium$x,DbCadmium$y,pch=19,cex=0.25)
+
+
+## Kriging stdev plot using bubblePlot
+bubblePlot(meuse.grid$x, meuse.grid$y, SKsd, asp=1)
+points(DbCadmium$x,DbCadmium$y,pch=19,cex=0.25)
+
+```
+
+# Kriging using gstlearn
+
+## Simple kriging and ordinary kriging (unique neighborhood)
+
+1. Adjust an anisotropic variogram model (see TP_vario).
+
+```{r}
+# experimental variogram
+varioexp_aniso = vario_exp(data,vname="log_cadmium",dir=c(0,45,90,135),nlag=20, dlag=100.)
+
+# fitting the model
+model_aniso=model_fit(varioexp_aniso,struct=struct_names)
+# display of the model
+model_aniso$display() ## look at the anisotropic matrices
+
+# plot of the experiment variogram and the fitted model
+plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
+           title="Model adjustment for cadmium")
+
+```
+
+2. Simple kriging: use model to compute the simple kriging predictor of the cadmium concentration, using the function `kriging`. Plot the results (prediction and standard deviation of kriging error) and compare them to the results obtained in the previous part (using `R` only).
+
+```{r}
+## Simple kriging using gstlearn
+
+target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "simple", mean = meanCadmium, neighborhood = "unique", std = TRUE)
+
+
+## Plot kriging estimate
+dbplot_grid(target, color='SK.log_cadmium.estim',title='Predicted log cadmium concentration')
+
+## Plot kriging stdev
+dbplot_grid(target, color='SK.log_cadmium.stdev',title='log cadmium prediction standard deviation')
+
+```
+
+3. Ordinary kriging: use the same neighborhood and model to compute ordinary kriging estimate.
+
+```{r}
+target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", neighborhood = "unique", std = TRUE)
+
+## Plot kriging estimate
+dbplot_grid(target, color='SK.log_cadmium.estim',title='Predicted log cadmium concentration')
+
+## Plot kriging stdev
+dbplot_grid(target, color='SK.log_cadmium.stdev',title='log cadmium prediction standard deviation')
+
+```
+
+## Comparison of the results
+
+1. Cross validation : For each observation location x_i, compute the kriging prediction at x_i when using all the observations except the one located at x_i. The cross-validation error at x_i is then defined as the difference between this prediction and the actual observed value at x_i.
+
+Cross-validation is done by the gstlearn function xvalid. This function returns a db containing the same variables as the input db + two new variables: One variable (with name ending with .esterr) containing the cross-validation errors, and a one variable (with name ending with .stderr) containing the cross-validation errors normalized by the kriging standard deviation.
+
+
+```{r}
+
+## Cross-validation for simple kriging
+
+err = xvalidation(data, vname = "log_cadmium", model=model_aniso, type = "simple", mean = meanCadmium, neighborhood = "unique", std = TRUE)
+
+p = ggplot()
+p = p + plot.hist(data,name="*esterr*",bins=30,fill="blue")
+p = p + plot.decoration(xlab="Estimation Errors", title="Cross-Validation")
+ggPrint(p)
+
+
+p = ggplot()
+p = p + plot.hist(data,name="*stderr*",bins=30,fill="blue")
+p = p + plot.decoration(xlab="Standardized Errors", title="Cross-Validation")
+ggPrint(p)
+
+
+## Print some statistics about the cross-validation errors
+
+print(c("Mean cross-validation error:",mean(data[,"*esterr*"], na.rm=TRUE)))
+print(c("Mean squared cross-validation error:",mean(data[,"*esterr*"]^2, na.rm=TRUE)))
+print(c("Mean squared standardized error:",mean(data[,"*stderr*"]^2, na.rm=TRUE)))
+
+
+p = ggDefaultGeographic()
+p = p + plot.grid(DbMeuseGrid)
+p = p + plot.point(DbMeuse,name_size = "*esterr", sizmax=3, flagAbsSize = TRUE)
+p = p + plot.decoration(title = "Cross-Validation scores")
+ggPrint(p)
+
+dbplot_grid(target,color = "SK*estim")
+dbplot_point(data,size = "*esterr*", add=T)
+
+## Cross-validation for ordinary kriging
+
+#...
+
+```
+
+2. Correlation plot: to compare the results of both estimator, you could also use the function `plot.correlation`. For example, plot the correlation between predictions on the one hand, and standard deviations of error on the second hand obtained with simple kriging (`SK`) and ordinary kriging (`OK`).
+
+```{r}
+## Correlation plot Simple Kriging VS Ordinary Kriging: Predictions
+
+p = ggplot()
+p = p + plot.correlation(DbMeuseGrid,name1="OK.cadmium.estim",name2="SK.cadmium.estim", 
+                     flagRegr=TRUE, flagSameAxes=TRUE, bins=100)
+p = p + plot.decoration(title="Estimation Simple vs. Ordinary", 
+                    xlab="Ordinary Kriging", ylab="Simple Kriging")
+ggPrint(p)
+
+
+## Correlation plot Simple Kriging VS Ordinary Kriging: Standard deviations
+
+p = ggplot()
+p = p + plot.correlation(DbMeuseGrid,name1="OK.cadmium.stdev",name2="SK.cadmium.stdev", 
+                     flagRegr=TRUE, flagSameAxes=TRUE, bins=100)
+p = p + plot.decoration(title="Standard deviation Simple vs. Ordinary", 
+                    xlab="Ordinary Kriging", ylab="Simple Kriging")
+ggPrint(p)
+
+```
+
+3. Split randomly the dataset into a training and a validation datasets. Compute the mean squared error at the validation locations.
