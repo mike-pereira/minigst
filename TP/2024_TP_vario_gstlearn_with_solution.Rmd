@@ -10,7 +10,7 @@
     chunk_output_type: console
   chunk_output_type: inline
 ---
-  
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
@@ -31,32 +31,28 @@ data(meuse) # load data
 ```
 
 Comments on the dataset (from <https://www.rdocumentation.org/packages/sp/versions/1.3-1/topics/meuse>):
-  
-* **x** and **y**: easting and northing (m) coordinates
-* **cadmium**, **copper**, **lead**, **zinc**: topsoil heavy metal concentrations (ppm) (NB: obtained from composite samples **15m x 15m**)
-* **elev**: relative elevation above the river (m)
-* **dist**: distance to the river (normalized between 0 and 1)
-* **om**, **soil**, **lime**: soil characteristics (content of organic matter, type of soil, presence of lime)
-* **ffreq**: flooding frequency
-* **landuse**: landuse classes
-* **dist.m**: distance to the river (m)
+
+-   **x** and **y**: easting and northing (m) coordinates
+-   **cadmium**, **copper**, **lead**, **zinc**: topsoil heavy metal concentrations (ppm) (NB: obtained from composite samples **15m x 15m**)
+-   **elev**: relative elevation above the river (m)
+-   **dist**: distance to the river (normalized between 0 and 1)
+-   **om**, **soil**, **lime**: soil characteristics (content of organic matter, type of soil, presence of lime)
+-   **ffreq**: flooding frequency
+-   **landuse**: landuse classes
+-   **dist.m**: distance to the river (m)
 
 ## Visualizing heavy metal concentrations
 
-0. Load *gstlearn* and *ggplot2*
-
-```{r loading_gstlearn}
-library(gstlearn)
-library(ggplot2)
-library(ggpubr)
-OptCst_defineByKey("ASP",0)
+```{r setting_asp}
+OptCst_defineByKey("ASP",0) # Fix the aspect ratio in all future plots
 ```
-1. Create a gstlearn `database` called `data` from the `meuse` dataset. Don't forget to set the correct variables (`x` and `y`) as coordinates! Also, add the log concentrations of `cadmium`, `copper`, `lead` and `zinc` to the resulting `database`.
+
+1.  Create a gstlearn `database` called `data` from the `meuse` dataset. Don't forget to set the correct variables (`x` and `y`) as coordinates! Also, add the log concentrations of `cadmium`, `copper`, `lead` and `zinc` to the resulting `database`.
 
 ```{r loading_in_Db}
 
 ## Create Db from dataframe
-data=dfToDb(meuse,coordnames = c("x","y"))
+data = dfToDb(meuse,coordnames = c("x","y"))
 
 ## Add log concentrations
 var_name = c( "cadmium", "copper", "lead", "zinc")
@@ -64,7 +60,7 @@ addVarToDb(data,var=log(meuse[,var_name]),vname = paste0("log_",var_name))
 
 ```
 
-2. Plot each heavy metal concentration.
+2.  Plot each heavy metal concentration.
 
 ```{r base_maps}
 
@@ -83,12 +79,13 @@ dbplot_point(data,size="log_zinc",sizeRange = c(0.1,3), pointColor = "darkgreen"
 
 ```
 
-3. Compute basic statistics of each heavy metal (log)concentration.
+3.  Compute basic statistics of each heavy metal (log)concentration.
 
 ```{r basic_statistics}
 
 # Statistics on the variables
 print(summaryStats(data,vname = c("cadmium","copper","lead","zinc")))
+#RMQ Emilie : pourquoi le print ? Il n'est pas nécessaire il me semble. Par ailleurs, comme meuse existe toujours (elle a été copiée dans data), on peut techniquement aussi faire un bête summary(meuse).
 
 # Statistics on the log-variables
 print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc"))))
@@ -96,7 +93,7 @@ print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc
 
 ```
 
-4. Fit the regression line of **y** as a function of **x**. Compare the basic statistics of each heavy metal concentration above and below the regression line.
+4.  Fit the regression line of **y** as a function of **x**. Compare the basic statistics of each heavy metal concentration above and below the regression line.
 
 ```{r lm_and_selections}
 xlim = range(data["x"])
@@ -147,15 +144,13 @@ print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc
 
 # remove the selection
 clearSel(data)
-
 ```
-
 
 # Variography using R
 
 ## Loading the data
 
-Create a matrix `dat` containing the coordinates and the metal log-concentrations at each point of the `meuse` dataset. Recall that, for convenience, we shall work with the logarithms of the concentrations.
+Create a database `dat` containing the coordinates and the metal log-concentrations at each point of the `meuse` dataset. Recall that, for convenience, we shall work with the logarithms of the concentrations.
 
 ```{r R_data_frame,echo=TRUE, eval=TRUE}
 vn_list = c("x", "y", paste0("log_", c("cadmium", "copper", "lead", "zinc")))
@@ -165,7 +160,7 @@ n=nrow(dat)
 
 ## Variogram cloud
 
-1. Create a matrix `dist` containing all the distances between the points and a matrix `vario` containing the quantities $$\frac{1}{2}(Z(x_i)-Z(x_j))^2$$ for all the pairs of points $i$ and $j$ (using the function `outer`). You may choose to work with the cadmium concentration for this example.
+1.  Create a matrix `dist` containing all the distances between the points and a matrix `vario` containing the quantities $$\frac{1}{2}(Z(x_i)-Z(x_j))^2$$ for all the pairs of points $i$ and $j$ (using the function `outer`). You may choose to work with the cadmium concentration for this example.
 
 ```{r R_variogram_cloud, echo=TRUE, eval=TRUE}
 # matrix containing all the distances between pairs of points
@@ -177,7 +172,7 @@ vario = 1/2*outer(dat[,"log_cadmium"],dat[,"log_cadmium"],"-")^2
 #alternative: vario = 1/2*as.matrix(dist(dat$log_cadmium))^2
 ```
 
-2. Plot the variogram cloud for the cadmium concentration, and eventually for the other metals.
+2.  Plot the variogram cloud for the cadmium concentration, and eventually for the other metals.
 
 ```{r R_variogram_cloud_plot, echo=TRUE, eval=TRUE}
 plot(dist,vario,cex=.25,xlab="Distance[m]",ylab=" ",main="Variogram cloud for cadmium",pch=19)
@@ -185,7 +180,7 @@ plot(dist,vario,cex=.25,xlab="Distance[m]",ylab=" ",main="Variogram cloud for ca
 
 ## Experimental variogram (omnidirectional)
 
-1. Compute the experimental variogram (`hh`,`gg`) for a set of lags and the number of pairs `npairs` used to compute each value.
+1.  Compute the experimental variogram (`hh`,`gg`) for a set of lags and the number of pairs `npairs` used to compute each value.
 
 Hint: use either a loop or the functions `cut` and `tapply`. The output of the function `cut` is a factor (`R` object), you may use the function `table` to compute the number of pairs for each value.
 
@@ -214,7 +209,7 @@ npairs2 = npairs2[1:20]
 
 ```
 
-2. Plot the experimental variogram for the cadmium concentration and display the number of pairs used to compute each point of the variogram.
+2.  Plot the experimental variogram for the cadmium concentration and display the number of pairs used to compute each point of the variogram.
 
 ```{r R_variogram_plot, echo=TRUE, eval=TRUE}
 plot(hh,gg,type="b",ylim = c(0,max(gg)),xlab="Lags",ylab="Variogram")
@@ -229,7 +224,7 @@ text(hh2,gg2,npairs2,pos=4,offset=-2,col=3)
 
 In this section, we fit a variogram model on the experimental variogram computed previously.
 
-1. Create a function `expo` returning the evaluation of an exponential variogram model with range `a` and sill `C` at a lag value `h`.
+1.  Create a function `expo` returning the evaluation of an exponential variogram model with range `a` and sill `C` at a lag value `h`.
 
 ```{r R_cov_function, echo=TRUE, eval=TRUE}
 expo = function(x,a,C){
@@ -237,7 +232,7 @@ expo = function(x,a,C){
 }
 ```
 
-2. Manual fitting : try a few values of `(a,C)` to get a first guess on the couple that best fits the experimental variogram.
+2.  Manual fitting : try a few values of `(a,C)` to get a first guess on the couple that best fits the experimental variogram.
 
 ```{r R_cov_manual_fitting, echo=TRUE, eval=TRUE}
 a = 330
@@ -254,7 +249,7 @@ lines(hh2, expo(hh2,a,C), col="green")
 # curve(expo(x,a,C),add=T,col=2)
 ```
 
-3. Automatic fitting : option 1, use the functions `nls` and `predict` to build a nonlinear least squares estimates and optimize it. Plot the optimized model on top of the experimental variogram. Option 2, use the function `optim` to find those parameters. In that case, you need to build a function that takes a vector `theta=c(a,C)` as input and returns the sum of squares you want to minimize. You can compare both methods.
+3.  Automatic fitting : option 1, use the functions `nls` and `predict` to build a nonlinear least squares estimates and optimize it. Plot the optimized model on top of the experimental variogram. Option 2, use the function `optim` to find those parameters. In that case, you need to build a function that takes a vector `theta=c(a,C)` as input and returns the sum of squares you want to minimize. You can compare both methods.
 
 ```{r R_cov_auto_fitting, echo=TRUE, eval=TRUE}
 # option 1
@@ -295,23 +290,17 @@ theta_optim
 
 ## Variogram cloud
 
-For one metal concentration (cadmium for example), compute and plot the variogram cloud (functions `VarioParam_createOmniDirection` and `db_variogram_cloud`). NB: the variogram cloud is computed for the variable located as `"z1"`. 
-In **gstlearn**, variogram clouds are computed as grids. 
+For one metal concentration (cadmium for example), compute and plot the variogram cloud (functions `VarioParam_createOmniDirection` and `db_variogram_cloud`). NB: the variogram cloud is computed for the variable located as `"z1"`. In **gstlearn**, variogram clouds are computed as grids.
 
-The data is modelled as *samples of a regionalized* variable $z$, i.e. as evaluations at locations $x_1,..,x_n$ of a variable $z$ defined across a spatial domain: 
-$$\lbrace z_i = z(x_i) : i = 1, ..., n\rbrace.$$
+The data is modelled as *samples of a regionalized* variable $z$, i.e. as evaluations at locations $x_1,..,x_n$ of a variable $z$ defined across a spatial domain: $$\lbrace z_i = z(x_i) : i = 1, ..., n\rbrace.$$
 
-The variogram cloud is the set of pair of points defined as
-$$ \big\lbrace \big( \Vert x_i - x_j\Vert,  \frac{1}{2}\big\vert z(x_i)-z(x_j)\big\vert^2 \big) \quad\text{where}\quad 1\le i\le j\le n \big\rbrace $$
-
+The variogram cloud is the set of pair of points defined as $$ \big\lbrace \big( \Vert x_i - x_j\Vert,  \frac{1}{2}\big\vert z(x_i)-z(x_j)\big\vert^2 \big) \quad\text{where}\quad 1\le i\le j\le n \big\rbrace $$
 
 ```{r Variogram_Cloud}
 grid.cloud = vario_cloud(data,vname = "log_cadmium",plot=TRUE)
 grid.cloud
 
 ```
-
-
 
 ## Experimental variogram (omnidirectional)
 
@@ -333,7 +322,7 @@ plot_vario(varioexp)
 
 ```
 
-We can also adapt the size of experimental variogram points in the plot so that it is proportional to the number of pairs of points used to compute the value. 
+We can also adapt the size of experimental variogram points in the plot so that it is proportional to the number of pairs of points used to compute the value.
 
 ```{r vario_omni_plot_continued}
 p1 = plot_vario(varioexp,pairDisplay = "label")
@@ -363,7 +352,7 @@ for (ilag in seq(lag_vario)) {
 
 ## Experimental variogram (anisotropic)
 
-1. Compute and plot the variogram map for cadmium concentration in order to check for anisotropies.
+1.  Compute and plot the variogram map for cadmium concentration in order to check for anisotropies.
 
 The experimental variogram map is a map centred at the origin, which represents the value of experimental directional variogram across all directions $0^{\circ} \le \theta< 360^{\circ}$.
 
@@ -374,9 +363,9 @@ grid.vmap = vario_map(data, vname="log_cadmium",plot=TRUE)
 
 ```
 
-2. Compute and plot directional variograms.
+2.  Compute and plot directional variograms.
 
-Much like their isotropic counterparts, experimental directional variograms are computed as `Vario` objects, which can be created from the `VarioParam` object (containing the parameters of the variogram) and a `Db` containing the data points. 
+Much like their isotropic counterparts, experimental directional variograms are computed as `Vario` objects, which can be created from the `VarioParam` object (containing the parameters of the variogram) and a `Db` containing the data points.
 
 This time, the `VarioParam` object is created using the function `VarioParam_createMultiple`. There, we specify the number $K$ of directions $\theta$ for which we wish to compute the an experimental variogram (argument `ndir`), as well as the reference angle $\theta_0$ of the first direction (argument `angref`, default = $0$) so that the directions $\theta$ = $\theta_0 + i(180/K)$ for $i=0,..., K-1$ are considered. We can also specify the number of lags $h$ for which the experimental variogram is computed (argument `npas`), and the distance between these lags (argument `npas`), as well as the tolerance $\tau$ on the lags (argument `toldis`). Then, the experimental variogram is computed just as in the isotropic case.
 
@@ -391,7 +380,6 @@ plot_vario(vario.4dir)
 
 
 ```
-
 
 ```{r Directional_Variograms_2directions}
 
@@ -410,7 +398,7 @@ It is also possible to guide the model fitting by proposing a list of basic cova
 printAllStruct()
 ```
 
-1. Create and adjust a model using the method `fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
+1.  Create and adjust a model using the method `fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
 
 ```{r fit_isotropic, echo=TRUE, eval=TRUE}
 # experimental variogram
@@ -428,7 +416,6 @@ plot_vario(varioexp_iso,model = model_iso,pairDisplay = "size",
 
 ```
 
-
 ```{r fit_anisotropic, echo=TRUE, eval=TRUE}
 # experimental variogram
 varioexp_aniso = vario_exp(data,vname="log_cadmium",dir=c(0,45,90,135),nlag=20, dlag=100.)
@@ -444,7 +431,7 @@ plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
 
 ```
 
-2. Try imposing different structures or combinations of structures.
+2.  Try imposing different structures or combinations of structures.
 
 ```{r fitting_vs_structures, echo=TRUE, eval=TRUE}
 struct_names = c("NUGGET","CUBIC")
@@ -461,7 +448,7 @@ plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
 
 ```
 
-3. Compare the models adjusted on the experimental variogram and the variogram map (function `Model::fitFromVMap`).
+3.  Compare the models adjusted on the experimental variogram and the variogram map (function `Model::fitFromVMap`).
 
 ```{r Fitting Vmap, echo=TRUE, eval=TRUE}
 struct_names = c("NUGGET","EXPONENTIAL", "SPHERICAL")
@@ -485,7 +472,7 @@ plot_vario(varioexp_aniso,model = modelexp, pairDisplay = "size",
 
 ## Multivariate variograms
 
-1. Compute the variograms and cross variograms for all metals, with and without anisotropy.
+1.  Compute the variograms and cross variograms for all metals, with and without anisotropy.
 
 ```{r Multivariate Modelling, echo=TRUE, eval=TRUE}
 
@@ -505,7 +492,7 @@ plot_vario(vario_aniso4var)
 
 ```
 
-2. Adjust a model (try several options) using the function `Model::fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
+2.  Adjust a model (try several options) using the function `Model::fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
 
 ```{r model_4var_iso, echo=TRUE, eval=TRUE}
 # selection of possible structures
@@ -565,4 +552,3 @@ ggarrange(p1, p2, p3, ncol = 3, nrow = 1,legend = "bottom",common.legend = TRUE)
 
 
 ```
-

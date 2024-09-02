@@ -312,6 +312,7 @@ model_fit<-function(vario,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
   }else{
     stop("The argument 'vario' expects either an experimental variogram or a DbGrid conatining a variogram map.")
   }
+
   return(model)
 }
 
@@ -365,7 +366,7 @@ printAllStruct<-function(){
 #' @param sill Value or vector specifying the sill/variance of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.
 #' @param param Value or vector specifying the extra parameter (eg. smoothness parameter for Matérn covariances) of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.
 #' @param ndim Space dimension of the model.
-#'
+#' @param mean Mean of the model (0 by default).
 #'
 #' @return A \pkg{gstlearn} Model object.
 #'
@@ -383,7 +384,7 @@ printAllStruct<-function(){
 #' ## Create model
 #' model=createModel(struct=struct_names, range = ranges, sill = variances, param = params,ndim=2)
 #'
-createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=2){
+createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=2, mean=0){
 
   nstruct=length(struct)
   range=.checkCovParam(range,"range",nstruct)
@@ -395,6 +396,7 @@ createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=
   for(i in 1:nstruct){
     err=Model_addCovFromParam(model,type = ECov_fromKey(struct[i]), sill = sill[i], range=range[i],param=param[i]) ## Ajouter un nugget de variance 1
   }
+  model$setMeans(mean)
 
   return(model)
 

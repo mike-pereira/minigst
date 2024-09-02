@@ -47,6 +47,7 @@ printAllPalettes<-function(){
 #' @param xlab Title of the x-axis.
 #' @param ylab Title of the y-axis.
 #' @param title Title of plot.
+#' @param add Either a boolean or \pkg{ggplot2} object. If \code{FALSE} (Default), then a new plot is created. If \code{TRUE}, then the points are added to the last plot (see \pkg{ggplot2::last_plot()}) specifying if the points are to be added to the last plot or not
 #' @param ... Additional arguments passed to the \pkg{ggplot2} functions \code{geom_point} and \code{geom_text}.
 #'
 #'
@@ -74,8 +75,17 @@ dbplot_point<-function(db,color=NULL,size=NULL,label=NULL,
                        sizeRange=c(1,5),absSize=FALSE,sizeLegendTitle=NULL,
                        cmap=NULL,discreteVal=FALSE,colorLegendTitle=NULL,
                        labelColor="black",pointColor="black",labelLegendTitle=NULL,
-                       xlab = NA, ylab = NA, title = NA,...){
-  p=ggDefaultGeographic()
+                       xlab = NA, ylab = NA, title = NA, add = FALSE,...){
+  
+  if(is.logical(add)){
+    if(add){
+      p = last_plot()
+    }else{
+      p=ggDefaultGeographic()
+    }
+  }else{
+    p = add
+  }
   if(is.null(color)){
     p=p+plot.point(db, color=pointColor, nameSize=size, nameLabel=label,
                    sizmin=sizeRange[1], sizmax=sizeRange[2], flagAbsSize = absSize,
@@ -98,12 +108,11 @@ dbplot_point<-function(db,color=NULL,size=NULL,label=NULL,
 }
 
 
-
 #' Add lines to an existing plot
 #'
 #' Function to add lines to an existing plot.
 #'
-#' @param plt A \pkg{ggplot2} plot object.
+#' @param plt A \pkg{ggplot2} plot object. 
 #' @param a,b Slope and intercept of the line (single values).
 #' @param h Value defining an horizontal line.
 #' @param v Value defining a vertical line.
@@ -133,8 +142,13 @@ dbplot_point<-function(db,color=NULL,size=NULL,label=NULL,
 #' # Display the plot
 #' print(plt)
 #'
+#' ## Alternatively, without using print (creates a new, updated plot each time)
+#' dbplot_point(db=db,size="Elevation")
+#' addLines(v=300, color = "orange")
+#' addLines(a=5,b=100,color="blue",linetype=2)
 #'
-addLines<-function(plt,a=NULL,b=NULL,h=NULL,v=NULL,color="black",linetype=1){
+
+addLines<-function(plt=last_plot(),a=NULL,b=NULL,h=NULL,v=NULL,color="black",linetype=1){
 
   if((!is.null(a))&&(!is.null(b))){
     plt=plt+geom_abline(slope = a,intercept = b,color=color,linetype=linetype)
@@ -149,7 +163,41 @@ addLines<-function(plt,a=NULL,b=NULL,h=NULL,v=NULL,color="black",linetype=1){
 
 }
 
-
+#' Add points to an existing plot
+#'
+#' Function to add points to an existing plot.
+#'
+#' @param plt A \pkg{ggplot2} plot object.
+#' @param x,y Coordinates of the points.
+#' @param color Name of the color of the points.
+#' @param shape Type of point, specified by either an integer (0-25) or a name, see \code{\link{vignette("ggplot2-specs")}}
+#' @param size Size of the point in mm.
+#'
+#' @return A \pkg{ggplot2} object containing the updated plot.
+#'
+#' @export
+#'
+#' @examples
+#' library(minigst)
+#'
+#' # Load Data and create Db
+#' data("Scotland")
+#' db=dfToDb(df=Scotland, coordnames=c("Longitude", "Latitude"))
+#'
+#' # Create a plot of  the variable Elevation
+#' plt=dbplot_point(db=db,size="Elevation")
+#'
+#' # Add two triangular-shaped, orange points the plot
+#' plt=addPoints(plt=plt,x=c(100,400),y=c(600,1100),color="orange", shape = 17, size = 3)
+#'
+#' # Display the plot
+#' print(plt)
+#'
+#'
+addPoints<-function(plt=last.plot(),x=NULL,y=NULL,color="black", shape = 16, size = 1){
+  plt = plt + geom_point(aes(x=x,y=y), colour = color, shape = shape, size = size)
+  return(plt)
+}
 
 
 #' Plot variables in a Db
@@ -189,7 +237,7 @@ addLines<-function(plt,a=NULL,b=NULL,h=NULL,v=NULL,color="black",linetype=1){
 #' dbplot_grid(dbG,color="Elevation",cmap = "viridis")
 #'
 #' # Store the plot, and then display it
-#' plt= dbplot_grid(dbG,color="Elevation",cmap = "viridis",)title="Printed plot")
+#' plt= dbplot_grid(dbG,color="Elevation",cmap = "viridis",title="Printed plot")
 #' print(plt)
 #'
 dbplot_grid<-function(dbGrid,color=NULL, contour=NULL, colValLimits=NULL,
