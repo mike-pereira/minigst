@@ -341,3 +341,27 @@ plot_correlation(target,vnamex="OK.log_cadmium.stdev",vnamey="OK_mov.log_cadmium
 ```
 
 Bonus question: try with other neighborhoods and compare the results.
+
+## Change of model
+
+Change the models (impose other structures) and compare the performance of kriging estimates (be attentive to the changes in standard deviation of kriging error).
+
+```{r}
+## Define model
+
+struct_names=c("NUGGET","EXPONENTIAL")
+# fitting the model
+model_aniso=model_fit(varioexp_aniso,struct=struct_names)
+# display of the model
+model_aniso$display() ## look at the anisotropic matrices
+
+# plot of the experiment variogram and the fitted model
+plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
+           title="Model adjustment for cadmium")
+
+## ....
+
+```
+
+
+
