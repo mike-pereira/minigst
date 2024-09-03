@@ -34,7 +34,7 @@
 #'
 #' @param dbin Db containing the data.
 #' @param dbout Target Db.
-#' @param vname Name of the variable, stored as a string.
+#' @param vname Name of the variable(s), stored as a (vector of) string(s).
 #' @param model A \pkg{gstlearn} Model object containing a fitted model.
 #' @param type Type of kriging, either "simple" or "ordinary".
 #' @param prefix prefix of the resulting predicted variables (kriging and optionnally standard deviation)
@@ -56,7 +56,7 @@
 #' 
 #'  
 #'
-kriging_uni<-function (dbin, dbout, vname, model, type = "ordinary", prefix="OK", mean = NULL, neighborhood = "unique", std = TRUE){
+minikriging<-function (dbin, dbout, vname, model, type = "ordinary", prefix="OK", mean = NULL, neighborhood = "unique", std = TRUE){
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
   if (type == "simple"){

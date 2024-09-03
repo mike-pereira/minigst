@@ -214,7 +214,7 @@ plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
 ```{r}
 ## Simple kriging using gstlearn
 
-target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "simple", prefix = "SK", mean = meanCadmium, neighborhood = "unique", std = TRUE)
+target = minikriging(data, target, vname = "log_cadmium", model = model_aniso, type = "simple", prefix = "SK", mean = meanCadmium, neighborhood = "unique", std = TRUE)
 
 
 ## Plot kriging estimate
@@ -228,7 +228,7 @@ dbplot_grid(target, color='SK.log_cadmium.stdev',title='log cadmium prediction s
 3. Ordinary kriging: use the same neighborhood and model to compute ordinary kriging estimate.
 
 ```{r}
-target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", prefix = "OK", neighborhood = "unique", std = TRUE)
+target = minikriging(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", prefix = "OK", neighborhood = "unique", std = TRUE)
 
 ## Plot kriging estimate
 dbplot_grid(target, color='OK.log_cadmium.estim',title='Predicted log cadmium concentration')
@@ -286,7 +286,7 @@ plot_correlation(target,vnamex="OK.log_cadmium.stdev",vnamey="SK.log_cadmium.std
 
 ## Kriging with moving neighborhood
 
-Up until now, we only considered kriging with a unique neighborhood. To work with a moving neighborhood, we first need to define it by creating "neighborhood" object describing its characteristics. This is done using the `neighborhood` parameter of the 'kriging_uni' funcion. We can specify:
+Up until now, we only considered kriging with a unique neighborhood. To work with a moving neighborhood, we first need to define it by creating "neighborhood" object describing its characteristics. This is done using the `neighborhood` parameter of the 'kriging' funcion. We can specify:
 
 * a neighborhood radius (argument `radius`, default=1.234e30): note that the default radius value is taken very large so that the neighborhood radius can basically be seen as infinite if the argument is not set by the user
 * the minimum and maximum number of data points (within the specified radius) that should be included in the neighborhood (respectively through the arguments `nmini` and `nmaxi`): for a given target point, if the number of data points within the neighborhood radius is smaller that the specified minimum, then no prediction is performed at this target (it is set to undefined)
@@ -302,7 +302,7 @@ neigh = c(nmini=1, nmaxi=1, radius = 150)
 ```{r}
 ## Ordinary kriging
 
-target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", prefix = "OK_mov",neighborhood = neigh, std = TRUE)
+target = minikriging(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", prefix = "OK_mov",neighborhood = neigh, std = TRUE)
 
 ## Plot kriging estimate
 dbplot_grid(target, color='OK_mov.log_cadmium.estim',title='Predicted log cadmium concentration')
@@ -363,5 +363,108 @@ plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
 
 ```
 
+# Multivariate geostatistics
+
+## Multivariate variography
+
+1. Variograms
+
+Compute and plot the variograms and cross-variograms for the 4 heavy metal (log) concentration.
+
+```{r Multivariate Modelling, fig.height=5,  fig.align='center'}
+
+# Variable names
+variable_names=paste0("log_", c("cadmium","copper","lead","zinc"))
+
+# omni-directional variograms and cross variograms
+vario_iso4var = vario_exp(data,vname=variable_names,nlag=20, dlag=100.)
+dev.new() # Open new window
+plot_vario(vario_iso4var)
+
+# directional variograms and cross variograms
+vario_aniso4var = vario_exp(data,vname=variable_names,dir=c(0,45,90,135),nlag=20, dlag=100.)
+dev.new() # Open new window
+plot_vario(vario_aniso4var)
+
+## Auto-fit
+
+struct_names = c("NUGGET","EXPONENTIAL")
+
+# isotropic case
+model_iso4var=model_fit(vario_iso4var,struct=struct_names)
+
+# Display and plot
+model_iso4var$display()
+dev.new()
+plot_vario(vario_iso4var, model_iso4var)
+
+
+# selection of the variables
+ivar = 1
+jvar = 3
+
+
+p1 = plot_vario(vario_iso4var, model_iso4var, ivar = ivar, jvar = ivar,
+                title = paste0(variable_names[1+ivar], "-", variable_names[1+ivar]))
+p2 = plot_vario(vario_iso4var, model_iso4var, ivar = ivar, jvar = jvar,
+                title = paste0(variable_names[1+ivar], "-", variable_names[1+jvar]))
+p3 = plot_vario(vario_iso4var, model_iso4var, ivar = jvar, jvar = jvar,
+                title = paste0(variable_names[1+jvar], "-", variable_names[1+jvar]))
+
+dev.new()
+ggarrange(p1, p2, p3, ncol = 3, nrow = 1,legend = "bottom",common.legend = TRUE)
+
+```
+
+2. Compute the ordinary cokriging predictions with a unique neighborhood of the four heavy metals. 
+
+```{r Cokriging, fig.height=6}
+
+## Cokriging: Since cross-variograms are provided to the function, the kriging function will perform a cokriging 
+## Note that gstlearn computes cokriging estimates for all the variables for which cross variograms are provided.
+
+target = minikriging(data, target, vname = variable_names, model = model_iso4var, type = "ordinary", prefix = "COK", neighborhood = "unique", std = TRUE)
+
+## Cokriging prediction of Cadmium
+dbplot_grid(target,color = 'COK.log_cadmium.estim',title='Cokriging of log cadmium concentration',colorLegendTitle="log concentration")
+
+## Cokriging prediction of Copper
+dbplot_grid(target,color = 'COK.log_copper.estim',title='Cokriging of log copper concentration',colorLegendTitle="log concentration")
+
+## Cokriging prediction of lead
+dbplot_grid(target,color = 'COK.log_lead.estim',title='Cokriging of log lead concentration',colorLegendTitle="log concentration")
+
+## Cokriging prediction of zinc
+dbplot_grid(target,color = 'COK.log_zinc.estim',title='Cokriging of log zinc concentration',colorLegendTitle="log concentration")
+
+
+## Cokriging standard deviation of Cadmium
+dbplot_grid(target,color = 'COK.log_cadmium.stdev',title='Cokriging standard deviation of log cadmium concentration',colorLegendTitle="log concentration")
+
+## Cokriging standard deviation of Copper
+dbplot_grid(target,color = 'COK.log_copper.stdev',title='Cokriging standard deviation of log copper concentration',colorLegendTitle="log concentration")
+
+## Cokriging standard deviation of lead
+dbplot_grid(target,color = 'COK.log_lead.stdev',title='Cokriging standard deviation of log lead concentration',colorLegendTitle="log concentration")
+
+## Cokriging standard deviation of zinc
+dbplot_grid(target,color = 'COK.log_zinc.stdev',title='Cokriging standard deviation of log zinc concentration',colorLegendTitle="log concentration")
+
+```
+
+## Comparaison OK / CoKriging
+
+3. Compare ordinary kriging and cokring results
+```{r, fig.height=5, results="hide"}
+## Correlation plot CoKriging VS Ordinary Kriging: Predictions
+
+plot_correlation(target,vnamex="OK.log_cadmium.estim",vnamey="COK.log_cadmium.estim", title="Estimation OK vs. COK", 
+                    xlab="OK", ylab="COK")
+
+## Correlation plot CoKriging VS Ordinary Kriging: Standard deviations
+plot_correlation(target,vnamex="OK.log_cadmium.stdev",vnamey="COK.log_cadmium.stdev", title="Standard deviation CoKriging vs. Ordinary", 
+                    xlab="OK", ylab="COK")
+
+```
 
 

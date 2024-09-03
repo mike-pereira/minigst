@@ -492,7 +492,7 @@ plot_vario(vario_aniso4var)
 
 ```
 
-2.  Adjust a model (try several options) using the function `Model::fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
+2.  Adjust a model (try several options) using the function `model_fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
 
 ```{r model_4var_iso, echo=TRUE, eval=TRUE}
 # selection of possible structures
