@@ -23,9 +23,6 @@ library(minigst)
 
 
 ```{r loading_gstlearn}
-library(gstlearn)
-library(ggplot2)
-library(ggpubr)
 OptCst_defineByKey("ASP",0)
 ```
 
@@ -217,7 +214,7 @@ plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
 ```{r}
 ## Simple kriging using gstlearn
 
-target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "simple", mean = meanCadmium, neighborhood = "unique", std = TRUE)
+target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "simple", prefix = "SK", mean = meanCadmium, neighborhood = "unique", std = TRUE)
 
 
 ## Plot kriging estimate
@@ -231,13 +228,13 @@ dbplot_grid(target, color='SK.log_cadmium.stdev',title='log cadmium prediction s
 3. Ordinary kriging: use the same neighborhood and model to compute ordinary kriging estimate.
 
 ```{r}
-target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", neighborhood = "unique", std = TRUE)
+target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", prefix = "OK", neighborhood = "unique", std = TRUE)
 
 ## Plot kriging estimate
-dbplot_grid(target, color='SK.log_cadmium.estim',title='Predicted log cadmium concentration')
+dbplot_grid(target, color='OK.log_cadmium.estim',title='Predicted log cadmium concentration')
 
 ## Plot kriging stdev
-dbplot_grid(target, color='SK.log_cadmium.stdev',title='log cadmium prediction standard deviation')
+dbplot_grid(target, color='OK.log_cadmium.stdev',title='log cadmium prediction standard deviation')
 
 ```
 
@@ -245,39 +242,21 @@ dbplot_grid(target, color='SK.log_cadmium.stdev',title='log cadmium prediction s
 
 1. Cross validation : For each observation location x_i, compute the kriging prediction at x_i when using all the observations except the one located at x_i. The cross-validation error at x_i is then defined as the difference between this prediction and the actual observed value at x_i.
 
-Cross-validation is done by the gstlearn function xvalid. This function returns a db containing the same variables as the input db + two new variables: One variable (with name ending with .esterr) containing the cross-validation errors, and a one variable (with name ending with .stderr) containing the cross-validation errors normalized by the kriging standard deviation.
+Cross-validation is done by the gstlearn function xvalid. This function returns a db containing the same variables as the input db + two new variables: One variable (with name ending with .esterr) containing the cross-validation errors, and one variable (with name ending with .stderr) containing the cross-validation errors normalized by the kriging standard deviation.
 
 
 ```{r}
 
 ## Cross-validation for simple kriging
 
-err = xvalidation(data, vname = "log_cadmium", model=model_aniso, type = "simple", mean = meanCadmium, neighborhood = "unique", std = TRUE)
+err = xvalidation(data, vname = "log_cadmium", model=model_aniso, type = "simple",prefix ="SK", mean = meanCadmium, neighborhood = "unique", std = TRUE)
 
-p = ggplot()
-p = p + plot.hist(data,name="*esterr*",bins=30,fill="blue")
-p = p + plot.decoration(xlab="Estimation Errors", title="Cross-Validation")
-ggPrint(p)
-
-
-p = ggplot()
-p = p + plot.hist(data,name="*stderr*",bins=30,fill="blue")
-p = p + plot.decoration(xlab="Standardized Errors", title="Cross-Validation")
-ggPrint(p)
-
+plot_hist(data,vname="*esterr*",nbin=30,color="blue",xlab="Estimation Errors", title="Cross-Validation")
 
 ## Print some statistics about the cross-validation errors
-
 print(c("Mean cross-validation error:",mean(data[,"*esterr*"], na.rm=TRUE)))
 print(c("Mean squared cross-validation error:",mean(data[,"*esterr*"]^2, na.rm=TRUE)))
 print(c("Mean squared standardized error:",mean(data[,"*stderr*"]^2, na.rm=TRUE)))
-
-
-p = ggDefaultGeographic()
-p = p + plot.grid(DbMeuseGrid)
-p = p + plot.point(DbMeuse,name_size = "*esterr", sizmax=3, flagAbsSize = TRUE)
-p = p + plot.decoration(title = "Cross-Validation scores")
-ggPrint(p)
 
 dbplot_grid(target,color = "SK*estim")
 dbplot_point(data,size = "*esterr*", add=T)
@@ -288,28 +267,77 @@ dbplot_point(data,size = "*esterr*", add=T)
 
 ```
 
-2. Correlation plot: to compare the results of both estimator, you could also use the function `plot.correlation`. For example, plot the correlation between predictions on the one hand, and standard deviations of error on the second hand obtained with simple kriging (`SK`) and ordinary kriging (`OK`).
+2. Correlation plot: to compare the results of both estimator, you can also use the function `plot.correlation`. For example, plot the correlation between predictions on the one hand, and standard deviations of error on the second hand obtained with simple kriging (`SK`) and ordinary kriging (`OK`).
 
 ```{r}
 ## Correlation plot Simple Kriging VS Ordinary Kriging: Predictions
 
-p = ggplot()
-p = p + plot.correlation(DbMeuseGrid,name1="OK.cadmium.estim",name2="SK.cadmium.estim", 
-                     flagRegr=TRUE, flagSameAxes=TRUE, bins=100)
-p = p + plot.decoration(title="Estimation Simple vs. Ordinary", 
+plot_correlation(target,vnamex="OK.log_cadmium.estim",vnamey="SK.log_cadmium.estim", title="Estimation Simple vs. Ordinary", 
                     xlab="Ordinary Kriging", ylab="Simple Kriging")
-ggPrint(p)
-
-
+                     
 ## Correlation plot Simple Kriging VS Ordinary Kriging: Standard deviations
 
-p = ggplot()
-p = p + plot.correlation(DbMeuseGrid,name1="OK.cadmium.stdev",name2="SK.cadmium.stdev", 
-                     flagRegr=TRUE, flagSameAxes=TRUE, bins=100)
-p = p + plot.decoration(title="Standard deviation Simple vs. Ordinary", 
+plot_correlation(target,vnamex="OK.log_cadmium.stdev",vnamey="SK.log_cadmium.stdev", title="Estimation Simple vs. Ordinary", 
                     xlab="Ordinary Kriging", ylab="Simple Kriging")
-ggPrint(p)
 
 ```
 
 3. Split randomly the dataset into a training and a validation datasets. Compute the mean squared error at the validation locations.
+
+## Kriging with moving neighborhood
+
+Up until now, we only considered kriging with a unique neighborhood. To work with a moving neighborhood, we first need to define it by creating "neighborhood" object describing its characteristics. This is done using the `neighborhood` parameter of the 'kriging_uni' funcion. We can specify:
+
+* a neighborhood radius (argument `radius`, default=1.234e30): note that the default radius value is taken very large so that the neighborhood radius can basically be seen as infinite if the argument is not set by the user
+* the minimum and maximum number of data points (within the specified radius) that should be included in the neighborhood (respectively through the arguments `nmini` and `nmaxi`): for a given target point, if the number of data points within the neighborhood radius is smaller that the specified minimum, then no prediction is performed at this target (it is set to undefined)
+
+For instance, to design a small Moving Neighborhood with only 1 sample per neighborhood (irregardless of its distance to the target point), we use the following command:
+
+```{r}
+neigh = c(nmini=1, nmaxi=1, radius = 150)
+```
+
+2. Use that neighborhood and the anistropic model adjusted previously to compute ordinary kriging estimate and standard deviation of kriging error (set `prefix="OK_mov"`). Plot the results.
+
+```{r}
+## Ordinary kriging
+
+target = kriging_uni(data, target, vname = "log_cadmium", model = model_aniso, type = "ordinary", prefix = "OK_mov",neighborhood = neigh, std = TRUE)
+
+## Plot kriging estimate
+dbplot_grid(target, color='OK_mov.log_cadmium.estim',title='Predicted log cadmium concentration')
+
+## Plot kriging stdev
+dbplot_grid(target, color='OK_mov.log_cadmium.stdev',title='log cadmium prediction standard deviation')
+```
+
+3. Compare the results obtained with a unique neighborhood and a moving neighborhood (`OK` and `OK_mov`) with cross validation and correlation plot.
+
+```{r}
+## Cross-validation for Ordinary kriging with moving neigborhood
+
+err = xvalidation(data, vname = "log_cadmium", model=model_aniso, type = "ordinary", prefix="OK_mov", mean = meanCadmium, neighborhood = "unique", std = TRUE)
+
+plot_hist(data,vname="Xvalid_OK_mov*esterr",nbin=30,color="blue",xlab="Estimation Errors", title="Cross-Validation")
+
+## Print some statistics about the cross-validation errors
+print(c("Mean cross-validation error:",mean(data[,"Xvalid_OK_mov*esterr"], na.rm=TRUE)))
+print(c("Mean squared cross-validation error:",mean(data[,"Xvalid_OK_mov*esterr"]^2, na.rm=TRUE)))
+print(c("Mean squared standardized error:",mean(data[,"Xvalid_OK_mov*stderr*"]^2, na.rm=TRUE)))
+
+dbplot_grid(target,color = "OK_mov*estim")
+dbplot_point(data,size = "Xvalid_OK_mov*esterr", add=T)
+
+## Correlation plot Ordinary Kriging unique neigborhood VS moving neigborhood: Predictions
+
+plot_correlation(target,vnamex="OK.log_cadmium.estim",vnamey="OK_mov.log_cadmium.estim", title="Estimation unique vs. moving", 
+                    xlab="unique neigh", ylab="moving neigh")
+                     
+## Correlation plot Simple Kriging VS Ordinary Kriging: Standard deviations
+
+plot_correlation(target,vnamex="OK.log_cadmium.stdev",vnamey="OK_mov.log_cadmium.stdev", title="Estimation unique vs. moving", 
+                    xlab="unique neigh", ylab="moving neigh")
+
+```
+
+Bonus question: try with other neighborhoods and compare the results.

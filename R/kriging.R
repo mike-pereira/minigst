@@ -4,15 +4,20 @@
 #' @keywords internal
 #'
 .createneigh<-function(neigh){
-  if (neigh == "unique"){
+  if (length(neigh) == 1){
+    if (neigh == "unique"){
     Neigh = NeighUnique()
+    }
+    else if ((sum(is.numeric(neigh))== 1)){
+      Neigh =NeighMoving_create(radius = neigh)
+    }
   }
-  else if ((sum(is.numeric(neigh))== 3) & (length(neigh == 3))){
+  else if ((sum(is.numeric(neigh))== 1) & (length(neigh) == 3)){
     if ((neigh[1] <= neigh[2]) & (neigh[3]>0)){
       Neigh =NeighMoving_create(nmini=neigh[1], nmaxi=neigh[2], radius=neigh[3])
     }
   }
-  else if ((sum(is.numeric(neigh))== 2) & (length(neigh == 2))){
+  else if ((sum(is.numeric(neigh))== 1) & (length(neigh) == 2)){
     if (neigh[1] <= neigh[2]){
       Neigh =NeighMoving_create(nmini=neigh[1], nmaxi=neigh[2])
     }
@@ -32,13 +37,14 @@
 #' @param vname Name of the variable, stored as a string.
 #' @param model A \pkg{gstlearn} Model object containing a fitted model.
 #' @param type Type of kriging, either "simple" or "ordinary".
+#' @param prefix prefix of the resulting predicted variables (kriging and optionnally standard deviation)
 #' @param mean Mean value if simple kriging is requested 
-#' @param neighborhood Type of neighborhood to used, either "unique" or a vector of the form (nmin, nmax) or (nmin, nmax, radius) see details. 
+#' @param neighborhood Type of neighborhood to used, either "unique" or a vector of the form (radius), (nmin, nmax) or (nmin, nmax, radius) see details. 
 #' @param std Boolean value indicating whether the prediction standard deviation should be computed.
 #'
 #' @details the vector (nmin, nmax, radius) indicates the minimum and the maximum number of points in the neighborhood and its optional radius.
 #' 
-#' @return the dbout where the prediction results have been added with a prefix SK respectively OK for simple and ordinary kriging.
+#' @return the dbout where the prediction results have been added with the associated prefix.
 #'
 #' @export
 #'
@@ -50,7 +56,7 @@
 #' 
 #'  
 #'
-kriging_uni<-function (dbin, dbout, vname, model, type = "ordinary", mean = NULL, neighborhood = "unique", std = TRUE){
+kriging_uni<-function (dbin, dbout, vname, model, type = "ordinary", prefix="OK", mean = NULL, neighborhood = "unique", std = TRUE){
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
   if (type == "simple"){
@@ -59,15 +65,16 @@ kriging_uni<-function (dbin, dbout, vname, model, type = "ordinary", mean = NULL
     err = kriging(dbin=dbin, dbout=dbout, model=model, 
                   neigh=Neigh,
                   flag_est=TRUE, flag_std=std, flag_varz=FALSE,
-                  namconv=NamingConvention("SK")
+                  namconv=NamingConvention(prefix)
     )
   }
   else if (type == "ordinary"){
+    err = model$delAllDrifts()
     err = model$addDrift(DriftM())
     err = kriging(dbin=dbin, dbout=dbout, model=model, 
                   neigh=Neigh,
                   flag_est=TRUE, flag_std=std, flag_varz=FALSE,
-                  namconv=NamingConvention("OK")
+                  namconv=NamingConvention(prefix)
     )
   }
   else {stop("The kriging type should be either simple or ordinary")}
@@ -84,7 +91,7 @@ kriging_uni<-function (dbin, dbout, vname, model, type = "ordinary", mean = NULL
 #' @param model A \pkg{gstlearn} Model object containing a fitted model.
 #' @param type Type of kriging, either "simple" or "ordinary".
 #' @param mean Mean value if simple kriging is requested 
-#' @param neighborhood Type of neighborhood to used, either "unique" or a vector of the form (nmin, nmax) or (nmin, nmax, radius) see details. 
+#' @param neighborhood Type of neighborhood to used, either "unique" or a vector of the form (radius), (nmin, nmax) or (nmin, nmax, radius) see details. 
 #' @param std Boolean value indicating whether the prediction standard deviation should be computed.
 #'
 #' @details For each observation location x_i, compute the kriging prediction at x_i when using all the observations except the one located at x_i. 
@@ -105,7 +112,7 @@ kriging_uni<-function (dbin, dbout, vname, model, type = "ordinary", mean = NULL
 #'  
 #'
 
-xvalidation <- function (dbin, vname, model, type = "ordinary", mean = NULL, neighborhood = "unique", std = TRUE){
+xvalidation <- function (dbin, vname, model, type = "ordinary",prefix = "OK", mean = NULL, neighborhood = "unique", std = TRUE){
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
   if (type == "simple"){
@@ -114,15 +121,16 @@ xvalidation <- function (dbin, vname, model, type = "ordinary", mean = NULL, nei
     err = xvalid(db=dbin, model=model, 
                  neigh=Neigh,
                  flag_xvalid_est=1, flag_xvalid_std=1,  
-                 namconv=NamingConvention_create("Xvalid", flag_locator = FALSE)
+                 namconv=NamingConvention_create(paste0("Xvalid_",prefix), flag_locator = FALSE)
     )
   }
   else if (type == "ordinary"){
+    err = model$delAllDrifts()
     err = model$addDrift(DriftM())
     err = xvalid(db=dbin, model=model, 
                  neigh=Neigh,
                  flag_xvalid_est=1, flag_xvalid_std=1,  
-                 namconv=NamingConvention_create("Xvalid", flag_locator = FALSE)
+                 namconv=NamingConvention_create(paste0("Xvalid_",prefix), flag_locator = FALSE)
     )
   }
   else {stop("The kriging type should be either simple or ordinary")}

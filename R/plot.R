@@ -242,7 +242,7 @@ addPoints<-function(plt=last.plot(),x=NULL,y=NULL,color="black", shape = 16, siz
 #'
 dbplot_grid<-function(dbGrid,color=NULL, contour=NULL, colValLimits=NULL,
                       cmap='viridis', naColor=NA,
-                      colorLegendTitle=NULL,contourLegendTitle=NULL,
+                      colorLegendTitle=title,contourLegendTitle=NULL,
                       asp=0,
                       xlab = NA, ylab = NA, title = NA,...){
   p=ggDefaultGeographic()
@@ -491,6 +491,66 @@ plot_vario<-function(expvario=NA,
 }
 
 
+#' Plot histogram of a variable in a gstlearn db
+#'
+#' Function to plot the histogram of a variable in a gstlearn db
+#'
+#'
+#' @param db Db object.
+#' @param vname name of the variable to be represented
+#' @param color Single color to use for all curves (default to blue)
+#' @param nbin a single number giving the number of cells for the histogram
+#' @param title Title of plot
+#' @param xlab label of the abscissa
+#' 
+#' @return A \pkg{ggplot2} object containing the plot. If stored in a variable, use the function \code{print} to display the plot.
+#' 
+#' @export
+#'
+#' @examples
+#' library(minigst)
+#'
+#' #todo
+#' 
+plot_hist<-function (db,vname,color = "blue",nbin=30, title,xlab){
+  p = ggplot()
+  p = p + plot.hist(db,name=vname,bins = nbin,fill=color)
+  p = p + plot.decoration(xlab=xlab, title=title)
+  return(p)
+}
+
+#' Plot correlation plot of a couple of variables in a gstlearn db
+#'
+#' Function to plot the histogram of a variable in a gstlearn db
+#'
+#'
+#' @param db Db object.
+#' @param vnamex name of the variable to be represented in abscissa
+#' @param vnamey name of the variable to be represented in ordinate
+#' @param reg Boolean, should the regression line be plotted
+#' @param sameaxes Boolean, should both variables be represented on the same axes
+#' @param title Title of plot.
+#' @param xlab label of the abscissa
+#' @param ylab label of the ordinate
+#' 
+#' @return A \pkg{ggplot2} object containing the plot. If stored in a variable, use the function \code{print} to display the plot.
+#' 
+#' @export
+#'
+#' @examples
+#' library(minigst)
+#'
+#' #todo
+#' 
+plot_correlation<-function (db,vnamex,vnamey,reg=T,sameaxes=T, nbin=100,title,xlab,ylab){
+  p = ggplot()
+  p = p + plot.correlation(db,namex=vnamex,namey=vnamey, 
+                           flagRegr=reg, flagSameAxes=sameaxes, bins=nbin)
+  p = p + plot.decoration(title=title, 
+                          xlab=xlab, ylab=ylab)
+  return(p)
+  
+}
 
 
 

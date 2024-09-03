@@ -123,7 +123,7 @@ setMean <- function(model,mu){
 #' dbplot_grid(db=tgt,color="Mysim", cmap = "Spectral", title = "Simulation", colorLegendTitle= "Value")
 #' 
 
-rgrf <- function(target, model, nsim, ntuba = 100, seed = 43431, simname = NULL, dbcond = NULL, vcond = NULL){
+rgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = NULL, dbcond = NULL, vcond = NULL){
   
   if(is.null(dbcond)){ # Unconditional simulations
     if (!is.null(simname)){
