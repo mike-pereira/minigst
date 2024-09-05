@@ -5,7 +5,7 @@
 #' @keywords internal
 #'
 .rep_arg<-function(n,arg,argname){
-
+  
   if(length(arg)==1){
     return(rep(arg,max(1,n)))
   }else if(n==0){
@@ -15,7 +15,7 @@
   }else{
     return(arg)
   }
-
+  
 }
 
 
@@ -27,7 +27,7 @@
 #' @keywords internal
 #'
 .createVarioParam<-function(db,dir=NULL,nlag=20, dlag=100,
-                    toldis = 0.5, tolang= NULL){
+                            toldis = 0.5, tolang= NULL){
   angles=F
   if(is.null(dim(dir))){
     if(db$getNDim()>2){
@@ -42,7 +42,7 @@
       stop("The number of columns of dir (",ndim,") should be the same as the space dimension in the Db (",db$getNDim(),").")
     }
   }
-
+  
   nlag=.rep_arg(ndir,nlag,"nlag")
   dlag=.rep_arg(ndir,dlag,"dlag")
   toldis=.rep_arg(ndir,toldis,"toldis")
@@ -51,8 +51,8 @@
   }else{
     tolang=.rep_arg(ndir,tolang,"tolang")
   }
-
-
+  
+  
   if(ndir>0){
     varioParam=VarioParam()
     for(i in 1:ndir){
@@ -63,11 +63,11 @@
       }
       varioParam$addDir(direc)
     }
-
+    
   }else{
     varioParam = VarioParam_createOmniDirection(npas=nlag, dpas=dlag, toldis = toldis)
   }
-
+  
   return(varioParam)
 }
 
@@ -120,14 +120,25 @@
 #' plot_vario(varioExpDir2var, title="Experimental (cross)-variograms for the variables 'Elevation' and 'January_temp")
 #'
 #'
-vario_exp<-function(db,vname,dir=NULL,nlag=20, dlag=100,
+vario_exp<-function(db,vname,drift=NULL,dir=NULL,nlag=20, dlag=100,
                     toldis = 0.5, tolang= 22.5){
   setVar(db,vname)
-
+  
   varioParam= .createVarioParam(db,dir,nlag, dlag,toldis,tolang)
-
+  
   varioexp = Vario(varioParam)
-  err = varioexp$compute(db)
+  if (is.null(drift)){
+    err = varioexp$compute(db)
+  }
+  if (!is.null(drift)){
+    for (xvar in drift){
+      db$setLocator(xvar,ELoc_F())
+    }
+    EDmodel = Model_create()
+    err = EDmodel$setDriftIRF(order=0,nfex=length(drift))
+    err = varioexp$compute(db,model=EDmodel)
+  }
+  
   return(varioexp)
 }
 
@@ -166,12 +177,12 @@ vario_exp<-function(db,vname,dir=NULL,nlag=20, dlag=100,
 #' varioCloudGrid = vario_cloud(db=db, vname="Elevation", plot = TRUE)
 #'
 vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5, plot=TRUE){
-
+  
   if(length(vname)!=1){
     stop("Variogram clouds are only computed for a single variable: please specify 1 variable name for the argument vname.")
   }
   setVar(db,vname)
-
+  
   ndir=0
   if(!is.null(dim(dir))){
     ndir=nrow(dir)
@@ -181,14 +192,14 @@ vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5, plot=TRUE){
   if(ndir>1){
     stop("Variogram clouds are only computed for a single direction: please specify only 1 direction or use NULL to create an omnidirectional variogram cloud.")
   }
-
+  
   stopifnot(is.numeric(gridRes))
   if(length(gridRes)==1){
     gridRes=c(gridRes, gridRes)
   }
-
+  
   varioParam= .createVarioParam(db,dir=dir,tolang=tolang)
-
+  
   grid.cloud=db_vcloud(db, varioParam,lagnb = gridRes[1], varnb = gridRes[2])
   if(plot){
     vn=grid.cloud$getNames("Cloud.*")[1]
@@ -230,24 +241,24 @@ vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5, plot=TRUE){
 #' varioMapGrid = vario_map(db=db, vname="Elevation", plot = TRUE)
 #'
 vario_map<-function(db,vname,gridRes=20,plot=T){
-
+  
   setVar(db,vname)
-
+  
   stopifnot(is.numeric(gridRes))
   grid.vmap = db_vmap(db,nxx = rep(gridRes[1],db$getNDim()))
-
+  
   vn1=grid.vmap$getNames("VMAP.*.Var")[1]
   p1=dbplot_grid(grid.vmap,color=vn1,cmap="Spectral",
                  colorLegendTitle ="Var",
                  title = paste0("Variogram map : ",vname))
-
+  
   vn2=grid.vmap$getNames("VMAP.*.Nb")[1]
   p2=dbplot_grid(grid.vmap,color=vn2,cmap="RdBu",
                  colorLegendTitle ="Nb",
                  title = "Number of pairs")
-
+  
   print(ggarrange(p1,p2,nrow=1,ncol=2, common.legend = FALSE))
-
+  
   return(grid.vmap)
 }
 
@@ -297,10 +308,12 @@ vario_map<-function(db,vname,gridRes=20,plot=T){
 #'            title="Model adjustment for Elevation")
 #'
 #'
-model_fit<-function(vario,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
+model_fit<-function(vario,drift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
   types = ECov_fromKeys(struct)
   model = Model()
   if(class(vario)=="_p_Vario"){
+    if (!is.null(drift)){
+      err = model$setDriftIRF(order=0,nfex=length(drift))}
     err = model$fit(vario, types=types, optvar=Option_VarioFit(flag_noreduce=pruneModel,auth_aniso=anisoModel))
   }else if(class(vario)=="_p_DbGrid"){
     vn=vario$getNames("VMAP.*.Var")[1]
@@ -312,7 +325,7 @@ model_fit<-function(vario,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
   }else{
     stop("The argument 'vario' expects either an experimental variogram or a DbGrid conatining a variogram map.")
   }
-
+  
   return(model)
 }
 
@@ -342,7 +355,7 @@ printAllStruct<-function(){
 
 
 .checkCovParam<-function(param,nameParam,n){
-
+  
   paramf=param
   if((!is.numeric(param)) || (sum(is.na(param)>0))){
     stop("The argument ",nameParam,"should be numeric, and NA are not allowed.")
@@ -352,7 +365,7 @@ printAllStruct<-function(){
   }else if(length(param)!=n){
     stop(paste0("The length of ", nameParam," (",length(param),") must be the same as the number of structures (",n,")"))
   }
-
+  
   return(paramf)
 }
 
@@ -385,21 +398,21 @@ printAllStruct<-function(){
 #' model=createModel(struct=struct_names, range = ranges, sill = variances, param = params,ndim=2)
 #'
 createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=2, mean=0){
-
+  
   nstruct=length(struct)
   range=.checkCovParam(range,"range",nstruct)
   sill=.checkCovParam(sill,"sill",nstruct)
   param=.checkCovParam(param,"sill",param)
-
+  
   ## Create empty model for 1 variable, and spaceDim dimension
   model = Model(1,ndim)
   for(i in 1:nstruct){
     err=Model_addCovFromParam(model,type = ECov_fromKey(struct[i]), sill = sill[i], range=range[i],param=param[i]) ## Ajouter un nugget de variance 1
   }
   model$setMeans(mean)
-
+  
   return(model)
-
+  
 }
 
 
@@ -488,7 +501,7 @@ model_eval<-function(x=NULL,y=NULL,h=NULL,dir=NULL, model=createModel(),mode="CO
   }else{
     stop("You must specify either the argument h, or both the arguments x and y.")
   }
-
+  
   return(res)
 }
 
@@ -524,12 +537,12 @@ model_eval<-function(x=NULL,y=NULL,h=NULL,dir=NULL, model=createModel(),mode="CO
 #'
 #'
 model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
-
+  
   ndim=model$getDimensionNumber()
   if(ncol(x)<ndim){
     stop(paste0("The number of columns of x should be the same as the space dimension of model (",ndim,")"))
   }
-
+  
   if(mode=="VG"){
     md=CovCalcMode(); md$setAsVario(TRUE);
   }else if(mode=="COV"){
@@ -537,10 +550,10 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
   }else{
     stop("Only values are possible for the argument mode: 'VG' to compute variogram values, and 'COV' to compute covariance values.")
   }
-
+  
   x=as.data.frame(x)
   db1=dfToDb(x,colnames(x)[1:ndim])
-
+  
   if(!is.null(y)){
     if(ncol(y)<ndim){
       stop(paste0("The number of columns of y should be the same as the space dimension of model (",ndim,")"))
@@ -550,16 +563,16 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
   }else{
     db2=NULL
   }
-
-
-
+  
+  
+  
   if(is.null(db2)){
     res=Model_evalCovMatrixSymmetric(model,db1,mode=md)$toTL()
     # res=Model_evalCovMatrix(model,db1,mode=md)$toTL()
   }else{
     res=Model_evalCovMatrix(model,db1,db2,mode=md)$toTL()
   }
-
+  
   return(res)
 }
 

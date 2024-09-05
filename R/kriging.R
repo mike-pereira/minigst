@@ -6,7 +6,7 @@
 .createneigh<-function(neigh){
   if (length(neigh) == 1){
     if (neigh == "unique"){
-    Neigh = NeighUnique()
+      Neigh = NeighUnique()
     }
     else if ((sum(is.numeric(neigh))== 1)){
       Neigh =NeighMoving_create(radius = neigh)
@@ -56,7 +56,7 @@
 #' 
 #'  
 #'
-minikriging<-function (dbin, dbout, vname, model, type = "ordinary", prefix="OK", mean = NULL, neighborhood = "unique", std = TRUE){
+minikriging<-function (dbin, dbout, vname, drift = NULL, model, type = "ordinary", prefix="OK", mean = NULL, neighborhood = "unique", std = TRUE){
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
   if (type == "simple"){
@@ -77,7 +77,17 @@ minikriging<-function (dbin, dbout, vname, model, type = "ordinary", prefix="OK"
                   namconv=NamingConvention(prefix)
     )
   }
-  else {stop("The kriging type should be either simple or ordinary")}
+  else if (type == "universal" & !is.null(drift)){
+    for (xvar in drift){
+      dbout$setLocator(xvar,ELoc_F())
+    }
+    err = kriging(dbin=dbin, dbout=dbout, model=model, 
+                  neigh=Neigh,
+                  flag_est=TRUE, flag_std=std, flag_varz=FALSE,
+                  namconv=NamingConvention(prefix)
+    )
+  }
+  else {stop("The kriging type should be either simple ordinary, or universal (with a drift properly defined)")}
   return(dbout)
 }
 
@@ -133,7 +143,7 @@ xvalidation <- function (dbin, vname, model, type = "ordinary",prefix = "OK", me
                  namconv=NamingConvention_create(paste0("Xvalid_",prefix), flag_locator = FALSE)
     )
   }
-  else {stop("The kriging type should be either simple or ordinary")}
+  else {stop("The kriging type should be either simple ordinary, or universal")}
   return(dbin)
 }
 
