@@ -122,7 +122,7 @@ minikriging<-function (dbin, dbout, vname, drift = NULL, model, type = "ordinary
 #'  
 #'
 
-xvalidation <- function (dbin, vname, model, type = "ordinary",prefix = "OK", mean = NULL, neighborhood = "unique", std = TRUE){
+xvalidation <- function (dbin, vname, drift = NULL, model, type = "ordinary",prefix = "OK", mean = NULL, neighborhood = "unique", std = TRUE){
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
   if (type == "simple"){
@@ -143,7 +143,17 @@ xvalidation <- function (dbin, vname, model, type = "ordinary",prefix = "OK", me
                  namconv=NamingConvention_create(paste0("Xvalid_",prefix), flag_locator = FALSE)
     )
   }
-  else {stop("The kriging type should be either simple ordinary, or universal")}
+  else if (type == "universal" & !is.null(drift)){
+    for (xvar in drift){
+      dbin$setLocator(xvar,ELoc_F())
+    }
+    err = xvalid(db=dbin, model=model, 
+                 neigh=Neigh,
+                 flag_xvalid_est=1, flag_xvalid_std=1,  
+                 namconv=NamingConvention_create(paste0("Xvalid_",prefix), flag_locator = FALSE)
+    )
+  }
+  else {stop("The kriging type should be either simple, ordinary, or universal")}
   return(dbin)
 }
 

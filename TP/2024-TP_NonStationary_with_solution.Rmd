@@ -126,6 +126,27 @@ dbplot_grid(target, color='UK.log_cadmium.stdev',title='log cadmium prediction s
 
 ```
 
+## Cross-validation
+
+```{r}
+## Cross-validation for universal kriging
+
+err = xvalidation(data, vname = "log_cadmium", drift ='dist.m', model=model_drift, type = "universal",prefix ="UK", neighborhood = "unique", std = TRUE)
+
+plot_hist(data,vname="*esterr*",nbin=30,color="blue",xlab="Estimation Errors", title="Cross-Validation")
+
+## Print some statistics about the cross-validation errors
+print(c("Mean cross-validation error:",mean(data[,"*esterr*"], na.rm=TRUE)))
+print(c("Mean squared cross-validation error:",mean(data[,"*esterr*"]^2, na.rm=TRUE)))
+print(c("Mean squared standardized error:",mean(data[,"*stderr*"]^2, na.rm=TRUE)))
+
+dbplot_grid(target,color = "UK*estim")
+dbplot_point(data,size = "*UK.log_cadmium.esterr", add=T)
+
+```
+
+
+
 ## Comparison and interpretation
 
 4. Compare ordinary kriging and universal kriging with `correlation()`. Interprete.
@@ -137,14 +158,21 @@ dbplot_grid(target, color='UK.log_cadmium.stdev',title='log cadmium prediction s
 
 ## Adding other explanatory variables
 
-We will try here to add *soil* and *ffreq*. Since those are categorical variables encoded as factors in the dataframe, we need to build the corresponding covariate vectors (1 less than the levels to avoid colinearity). To do this, let's consider the following piece of code:
+We will try here to add *soil* and *ffreq*. Since those are categorical variables encoded as factors in the dataframes *meuse* and *meuse.grid*, we need to build the corresponding covariate vectors (1 less than the levels to avoid colinearity). To do this, let's consider the following piece of code:
 
 
 ```{r}
+require(mltools)
+require(data.table)
+newdata <- one_hot(as.data.table(meuse[,c("soil","ffreq")]))
+meuse <- cbind(meuse,as.data.frame(newdata)[,-c(3,6)])
+
+newdata <- one_hot(as.data.table(meuse.grid[,c("soil","ffreq")]))
+meuse.grid <- cbind(meuse.grid,as.data.frame(newdata)[,-c(3,6)])
+
 
 ```
 
-NB: It is necessary to recreate the grid because the selection causes a bug when performed prior to the creation of the indicators.
 
 5. Compute the variogram with the new universality conditions, fit a model and perform the kriging. Do the results improve ?
 
@@ -170,6 +198,7 @@ To do this, we use the **geoR** package. You may need to install it.
 ```{r}
 library(geoR)
 meuse.geoR = as.geodata(meuse, coords.col = 1:2, data.col = 3,covar.col = 8)
+meuse.geoR$data = log(meuse.geoR$data)
 meuse.geoR.grid = as.geodata(meuse.grid, coords.col = 1:2,covar.col = 5)
 plot(meuse.geoR)
 ```
@@ -188,12 +217,18 @@ vg.72 <- variog(meuse.geoR,uvec = seq(0,2000,l=20), direction = 72/180 * pi ,bin
 plot(vg.72)
 ```
 
+Variogram of residuals
+```{r}
+vg.dist <- variog(meuse.geoR,uvec = seq(0,2000,l=20) ,trend = ~dist ,bin.cloud = T)
+plot(vg.dist)
+```
+
 
 Then according to the covariance structure we want to infer (exponential by default), we can try something like this (see **?likfit** for more details)
 
 ```{r}
-mean(meuse$cadmium)
-var(meuse$cadmium)
+mean(log(meuse$cadmium))
+var(log(meuse$cadmium))
 ml = likfit(meuse.geoR, ini = c(0.5, 400), nug = 0.2)
 summary(ml)
 ml.dist = likfit(meuse.geoR, ini = c(0.5, 400), nug = 0.2,trend = trend.spatial(trend = ~dist ,meuse.geoR))
@@ -210,6 +245,7 @@ We can represent the resulting fitting on the variogram
 
 ```{r}
 plot(vg)
+lines(vg.dist)
 lines(ml)
 lines(ml.dist)
 
@@ -223,56 +259,22 @@ par(mfrow=c(1,1))
 ## Prediction
 
 
-```{r}
-add.variable =function(var, data)
-{
-  data = cbind(data,var)
-  gridtemp = Db()
-  for (field in names(data))
-    gridtemp[field] = data[field]
-  gridtemp
-  gridtemp$setLocators(c("x","y"), ELoc_X())
-  
-  nx = c(length(unique(data[,1])),length(unique(data[,2])))
-  dx =  c(min(diff(sort(unique(data[,1])))),min(diff(sort(unique(data[,2])))))
-  x0 = c(min(data[,1]),min(data[,2]))
-  
-  gridgs = DbGrid_create(nx,dx,x0)
-  migrateMulti(gridtemp,gridgs,names = tail(names(data),1))
-  gridgs$addSelection(!is.na(gridgs["dist"]),name="sel")
-
-  #gridtemp.$addColumns(gridtemp.,var)
-  gridgs
-}
-```
-
 We perform kriging with the **geoR** functions, on the grid and on the validation locations.
 
 ```{r}
 
-k.grid = krige.conv(meuse.geoR,loc = meuse.geoR.grid$coords,krige = krige.control(obj.m=ml.dist,trend.d = trend.spatial(trend = ~dist,meuse.geoR), trend.l = trend.spatial(trend = ~dist,meuse.geoR.grid)))
+k.grid = krige.conv(meuse.geoR,loc = meuse.geoR.grid$coords,krige = krige.control(obj.m=ml.dist,trend.d = trend.spatial(trend = ~dist,meuse.geoR), trend.l = trend.spatial(trend = ~dist.m,meuse.geoR.grid)))
 
 ```
 
-Next we plot the resulting kriging and standard deviation maps using gstlearn and compute the MSE on the validation locations.
+Next we plot the resulting kriging and standard deviation maps.
 
 ```{r}
-gridgs = add.variable(k.grid$predict, meuse.grid)
-p = ggDefaultGeographic()
-p = p + plot.grid(gridgs,
-                  show.legend.raster = TRUE, palette="Spectral",legend.name.raster="log(ppm)") 
-#p = p + plot.point(dat,flagCst = T,pch=18,cex=1.5)
-p = p + plot.decoration(title="Prediction by Kriging (ML based)")
-ggPrint(p)
+library(fields)
+bubblePlot(meuse.grid$x, meuse.grid$y, k.grid$predict, asp=1)
 
+bubblePlot(meuse.grid$x, meuse.grid$y, sqrt(k.grid$krige.var), asp=1)
 
-gridgs = add.variable(sqrt(k.grid$krige.var), meuse.grid)
-p = ggDefaultGeographic()
-p = p + plot.grid(gridgs,
-                  show.legend.raster = TRUE, palette="Spectral",legend.name.raster="log(ppm)") 
-#p = p + plot.point(dat,flagCst = T,pch=18,cex=1.5)
-p = p + plot.decoration(title="Kriging standard deviation (ML based)")
-ggPrint(p)
 ```
 
 
@@ -289,6 +291,7 @@ ggPrint(p)
 8. Compare the results obtained through variogram fitting and with `correlation()`. Interprete.
 
 ```{r}
+
 ```
 
 9. Divide your dataset into two subsets: one for training, another for testing, possibly several times into a loop. Explain how you choose to build these two subsets and why.
