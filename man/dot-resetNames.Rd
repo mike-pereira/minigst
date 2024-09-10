@@ -11,7 +11,7 @@
 
 \item{Loc}{Locator object}
 
-\item{names}{Vector of names (must be of the same as )}
+\item{names}{Vector of names (must be at least of the same size as the number of variables)}
 }
 \description{
 Function to rename all the variables from a Db sharing the same locator

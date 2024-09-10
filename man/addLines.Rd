@@ -5,7 +5,7 @@
 \title{Add lines to an existing plot}
 \usage{
 addLines(
-  plt,
+  plt = last_plot(),
   a = NULL,
   b = NULL,
   h = NULL,
@@ -52,5 +52,9 @@ plt=addLines(plt=plt,a=5,b=100,color="blue",linetype=2)
 # Display the plot
 print(plt)
 
+## Alternatively, without using print (creates a new, updated plot each time)
+dbplot_point(db=db,size="Elevation")
+addLines(v=300, color = "orange")
+addLines(a=5,b=100,color="blue",linetype=2)
 
 }

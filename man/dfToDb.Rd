@@ -23,7 +23,7 @@ A Db object.
 Function to convert a dataframe into a \pkg{gstlearn} Db or DbGrid object.
 }
 \details{
-When loading grid data in \code{df}, one should make sure that the data in df contain all the points of the grid.
+When loading grid data in \code{df}, if the data points are a subset of a grid, a boolean variable \code{Sel} is added to the DbGrid to indicate if each point belong to the initial dataset
 
 Calling the function \code{dfToDbGrid} is the same as calling the function \code{dfToDb} with the option \code{isGrid=TRUE}.
 }

@@ -9,9 +9,9 @@ dbplot_grid(
   color = NULL,
   contour = NULL,
   colValLimits = NULL,
-  cmap = NULL,
+  cmap = "viridis",
   naColor = NA,
-  colorLegendTitle = NULL,
+  colorLegendTitle = title,
   contourLegendTitle = NULL,
   asp = 0,
   xlab = NA,
@@ -67,7 +67,7 @@ dbG=dfToDbGrid(df=ScotlandGrid,coordnames = c("Longitude","Latitude"))
 dbplot_grid(dbG,color="Elevation",cmap = "viridis")
 
 # Store the plot, and then display it
-plt= dbplot_grid(dbG,color="Elevation",cmap = "viridis",)title="Printed plot")
+plt= dbplot_grid(dbG,color="Elevation",cmap = "viridis",title="Printed plot")
 print(plt)
 
 }

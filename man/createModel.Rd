@@ -4,7 +4,14 @@
 \alias{createModel}
 \title{Create a model}
 \usage{
-createModel(struct = "SPHERICAL", range = 0.3, sill = 1, param = 1, ndim = 2)
+createModel(
+  struct = "SPHERICAL",
+  range = 0.3,
+  sill = 1,
+  param = 1,
+  ndim = 2,
+  mean = 0
+)
 }
 \arguments{
 \item{struct}{Vector containing the names of the desired basic structures. The list of available structures is obtained by calling the function \code{\link{printAllStruct}}.}
@@ -16,6 +23,8 @@ createModel(struct = "SPHERICAL", range = 0.3, sill = 1, param = 1, ndim = 2)
 \item{param}{Value or vector specifying the extra parameter (eg. smoothness parameter for Matérn covariances) of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.}
 
 \item{ndim}{Space dimension of the model.}
+
+\item{mean}{Mean of the model (0 by default).}
 }
 \value{
 A \pkg{gstlearn} Model object.

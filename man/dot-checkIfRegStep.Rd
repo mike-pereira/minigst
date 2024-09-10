@@ -3,7 +3,7 @@
 \name{.checkIfRegStep}
 \alias{.checkIfRegStep}
 \title{Function to check if a vector properly defines a set of grid coordinates,
-i.e. if the values are ordered}
+i.e. if the values are both sorted in increasing order and regularly spaced}
 \usage{
 .checkIfRegStep(yseq, tolRelError = 1e-06)
 }
@@ -14,6 +14,6 @@ i.e. if the values are ordered}
 }
 \description{
 Function to check if a vector properly defines a set of grid coordinates,
-i.e. if the values are ordered
+i.e. if the values are both sorted in increasing order and regularly spaced
 }
 \keyword{internal}

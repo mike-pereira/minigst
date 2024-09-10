@@ -26,8 +26,8 @@ Function to create an empty \pkg{gstlearn} DbGrid object.
 \details{
 There are two ways of creating a DbGrid:
 \itemize{
-  \item Either by specifying the argument \code{coords} and optionally the argument \code{coordnames}. The dimension of the grid is then set by the number of vectors of coordinates given in \code{coords}, and the other arguments are then ignored.
-  \item Or by specifying the argument \code{nx} and optionally the arguments \code{dx, x0, coordnames}. The dimension of the grid is then set by the length of \code{nx}, and the other arguments are then ignored.
+  \item Either by specifying the argument \code{coords} and optionally the argument \code{coordnames}. Then, the dimension of the grid is set by the number of vectors of coordinates given in \code{coords} and the other arguments are ignored.
+  \item Or by specifying the argument \code{nx} and optionally the arguments \code{dx, x0, coordnames}. Then, the dimension of the grid is set by the length of \code{nx}, and the other arguments are ignored.
 }
 }
 \examples{

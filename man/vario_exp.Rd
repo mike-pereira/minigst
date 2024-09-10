@@ -7,6 +7,7 @@
 vario_exp(
   db,
   vname,
+  drift = NULL,
   dir = NULL,
   nlag = 20,
   dlag = 100,

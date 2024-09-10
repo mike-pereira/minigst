@@ -1,6 +1,6 @@
 ---
-  title: "Variography using R/gstlearn - Correction"
-  author: "Thomas Romary, Fabien Ors, Lucia Clarotto, Mike Pereira, and Xavier Freulon"
+  title: "Variography using (mini)gstlearn - Correction"
+  author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
   date: "Option Géostatistique 2024"
   output:
   pdf_document:
@@ -16,8 +16,6 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
 library(minigst)
-# source("./TP/vario.R")
-# source("./TP/dbplot.R")
 
 ```
 
@@ -47,7 +45,7 @@ Comments on the dataset (from <https://www.rdocumentation.org/packages/sp/versio
 OptCst_defineByKey("ASP",0) # Fix the aspect ratio in all future plots
 ```
 
-1.  Create a gstlearn `database` called `data` from the `meuse` dataset. Don't forget to set the correct variables (`x` and `y`) as coordinates! Also, add the log concentrations of `cadmium`, `copper`, `lead` and `zinc` to the resulting `database`.
+1.  Create a gstlearn `database` called `data` from the `meuse` dataset. Don't forget to set the correct variables (`x` and `y`) as coordinates! Also, add the log concentrations of `cadmium`, `copper`, `lead` and `zinc` to the resulting `database`, under the names `log_cadmium`, `log_copper`, `log_lead` and `log_zinc`. *(Indication: Use the functions `dfToDb` and `addVarToDb`)*
 
 ```{r loading_in_Db}
 
@@ -60,7 +58,7 @@ addVarToDb(data,var=log(meuse[,var_name]),vname = paste0("log_",var_name))
 
 ```
 
-2.  Plot each heavy metal concentration.
+2.  Plot each heavy metal (log)concentration. *(Indication: Use the function `db_plot_point`)*
 
 ```{r base_maps}
 
@@ -79,7 +77,7 @@ dbplot_point(data,size="log_zinc",sizeRange = c(0.1,3), pointColor = "darkgreen"
 
 ```
 
-3.  Compute basic statistics of each heavy metal (log)concentration.
+3.  Compute basic statistics of each heavy metal (log)concentration. *(Indication: Use the function `summaryStats`)*
 
 ```{r basic_statistics}
 
@@ -93,12 +91,41 @@ print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc
 
 ```
 
-4.  Fit the regression line of **y** as a function of **x**. Compare the basic statistics of each heavy metal concentration above and below the regression line.
+
+4.  Compare the basic statistics above to those obtained when considering only the points having a Cadmium log-concentration above 0.5. *(Indication: Use the functions `addSel`, and `summaryStats`)*
+
+```{r stats_above_thres}
+
+## Select values above a threshold for cadmium
+addSel(data,sel=data["log_cadmium"] >= 0.5)
+
+# Plot
+plt=dbplot_point(data,size="log_cadmium", pointColor = "orange",
+             xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium >= 2")
+print(plt)
+
+# Compute stats
+print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc"))))
+
+#--------------------------------------------
+
+# Remove the selection
+clearSel(data)
+
+# Plot
+plt=dbplot_point(data,size="log_cadmium", pointColor = "orange",
+             xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium")
+print(plt)
+
+
+```
+
+
+4.  Fit the regression line of the coordinates **y** as a function of the coordinates **x**. Compare the basic statistics of each heavy metal concentration above and below the regression line. *(Indication: Use the functions `lm`, `addSel`, and `summaryStats`)*
 
 ```{r lm_and_selections}
-xlim = range(data["x"])
-ylim = range(data["y"])
 
+## Fit regression line
 reg = lm(data["y"] ~ data["x"])
 a = reg$coefficients[2]
 b = reg$coefficients[1]
@@ -109,48 +136,46 @@ plt=dbplot_point(data,size="log_cadmium",sizeRange = c(0.1,3), pointColor = "gra
 plt=addLines(plt,a=a,b=b,color = "orange")
 print(plt)
 
+#-----------------------------------------------
 
-# select values below the regression line
+## Select values below the regression line
 addSel(data,sel=(data["y"] < a * data["x"] +b))
 
+# Plot
 plt=dbplot_point(data,size="log_cadmium", pointColor = "skyblue",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium ((selection y < a*x +b))")
 plt=addLines(plt,a=a,b=b,color = "orange")
 print(plt)
 
+# Compute stats
 print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc"))))
 
+#-----------------------------------------------
 
-# select values above the regression line
+## Select values above the regression line
 addSel(data,sel=(data["y"] >= a * data["x"] +b))
 
+# Plot
 plt=dbplot_point(data,size="log_cadmium", pointColor = "pink",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium (selection y >= a*x +b)")
 plt=addLines(plt,a=a,b=b,color = "orange")
 print(plt)
 
+# Compute stats
 print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc"))))
 
+#-----------------------------------------------
 
-# select values above a threshold for cadmium
-addSel(data,sel=data["cadmium"] >= 2)
-
-plt=dbplot_point(data,size="log_cadmium", pointColor = "orange",
-             xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium >= 2")
-plt=addLines(plt,a=a,b=b,color = "orange")
-print(plt)
-
-print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc"))))
-
-# remove the selection
+# Remove the selection
 clearSel(data)
+
 ```
 
 # Variography using R
 
 ## Loading the data
 
-Create a database `dat` containing the coordinates and the metal log-concentrations at each point of the `meuse` dataset. Recall that, for convenience, we shall work with the logarithms of the concentrations.
+Create a database `dat` containing the coordinates and the metal log-concentrations at each point of the `meuse` dataset. Recall that, for convenience, we shall work with the logarithms of the concentrations. *(Indication: You can do this by extracting the appropriate variables from the database `data` using: `data[vector_of_variable_names]`)*
 
 ```{r R_data_frame,echo=TRUE, eval=TRUE}
 vn_list = c("x", "y", paste0("log_", c("cadmium", "copper", "lead", "zinc")))
@@ -160,7 +185,7 @@ n=nrow(dat)
 
 ## Variogram cloud
 
-1.  Create a matrix `dist` containing all the distances between the points and a matrix `vario` containing the quantities $$\frac{1}{2}(Z(x_i)-Z(x_j))^2$$ for all the pairs of points $i$ and $j$ (using the function `outer`). You may choose to work with the cadmium concentration for this example.
+1.  Create a matrix `dist` containing all the distances between the points and a matrix `vario` containing the quantities $$\frac{1}{2}(Z(x_i)-Z(x_j))^2$$ for all the pairs of points $i$ and $j$ (using the function `outer`). You may choose to work with the cadmium concentration for this example. *(Indication: Use the function `outer`)*
 
 ```{r R_variogram_cloud, echo=TRUE, eval=TRUE}
 # matrix containing all the distances between pairs of points

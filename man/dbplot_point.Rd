@@ -21,6 +21,7 @@ dbplot_point(
   xlab = NA,
   ylab = NA,
   title = NA,
+  add = FALSE,
   ...
 )
 }
@@ -56,6 +57,8 @@ dbplot_point(
 \item{ylab}{Title of the y-axis.}
 
 \item{title}{Title of plot.}
+
+\item{add}{Either a boolean or \pkg{ggplot2} object. If \code{FALSE} (Default), then a new plot is created. If \code{TRUE}, then the points are added to the last plot (see \pkg{ggplot2::last_plot()}) specifying if the points are to be added to the last plot or not}
 
 \item{...}{Additional arguments passed to the \pkg{ggplot2} functions \code{geom_point} and \code{geom_text}.}
 }

@@ -345,10 +345,10 @@ addVarToDb<-function(db,var,vname){
   }
   
   if(N!=nrow(db[])){
-    stop("The variables should have the same length as the number of points in the Db.")
+    stop("The variables should have the same length (",N,") as the number of points in the Db (",nrow(db[]),").")
   }
   if(length(vname)!=ncol(var)){
-    stop("The number of variable names should be the same as the number of variables.")
+    stop("The number of variable names (",length(vname),") should be the same as the number of variables (",ncol(var),").")
   }
   
   for(i in 1:length(vname)){
