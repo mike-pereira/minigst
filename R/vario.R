@@ -579,6 +579,138 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
 
 
 
+
+
+
+#' Extract parameters from a Model object
+#'
+#' Functions to extract the parameters of a Model Object
+#'
+#' @param model Model object
+#'
+#' @details 
+#' \itemize{
+#'   \item \code{model_getStructNames} returns a vector containing the names of the basic structures composing the model.
+#'   \item \code{model_getRanges} returns a matrix where the rows contain the range values of each basic structure of the model, and the columns to the range values in the principal direction and cross-direction(s) of the basic structure.
+#'   \item \code{model_getScales} returns a matrix where the rows contain the scale values of each basic structure of the model, and the columns to the scale values in the principal direction and cross-direction(s) of the basic structure.
+#'   \item \code{model_getSills} returns an array with three dimensions: the first two dimensions corresponding to the variables modeled in a given basic structure, and the third dimension corresponds to the different basic structures.
+#'   \item \code{model_getAngles} returns a vector containing the anistropy angles of each basic structure.
+#' }
+#' 
+#'
+#' @return A matrix or vector containing the extracted parameters.
+#'
+#' @export
+#'
+#' @examples
+#' library(minigst)
+#'
+#' ## Create model
+#' model=createModel(struct=c("EXPONENTIAL", "NUGGET"), range = 0.3, sill = c(1,0.1), ndim=2)
+#'
+#' ## Extract ranges
+#' model_getRanges(model)
+#'
+#'
+model_getStructNames<-function(model){
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
+  names=NULL
+  for(i in 1:nbStruct){
+    names=c(names,model$getCova(i-1)$getCovName())
+  }
+  return(names)
+}
+
+
+#' @rdname model_getStructNames
+#'
+#' @export
+#'
+model_getRanges<-function(model){
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
+  ranges=NULL
+  for(i in 1:nbStruct){
+    ranges=rbind(ranges,model$getCova(i-1)$getRanges())
+  }
+  rownames(ranges)=model_getStructNames(model)
+  
+  idNugget=which(rownames(ranges)=="Nugget Effect")
+  if(length(idNugget)>0){
+    ranges[idNugget,]=NA
+  }
+  
+  return(ranges)
+}
+
+
+#' @rdname model_getStructNames
+#'
+#' @export
+#'
+model_getScales<-function(model){
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
+  scales=NULL
+  for(i in 1:nbStruct){
+    scales=rbind(scales,model$getCova(i-1)$getScales())
+  }
+  rownames(scales)=model_getStructNames(model)
+  
+  idNugget=which(rownames(scales)=="Nugget Effect")
+  if(length(idNugget)>0){
+    scales[idNugget,]=NA
+  }
+  
+  return(scales)
+}
+
+
+#' @rdname model_getStructNames
+#'
+#' @export
+#'
+model_getSills<-function(model){
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
+  sills=array(0,dim=c(nbVar,nbVar,nbStruct))
+  for(i in 1:nbStruct){
+    sills[,,i]=CovAniso_getSill__SWIG_0(model$getCova(i-1))$toTL()
+  }
+  dimnames(sills)[[3]]=model_getStructNames(model)
+  
+  return(sills)
+}
+
+
+#' @rdname model_getStructNames
+#'
+#' @export
+#'
+model_getAnisoAngles<-function(model){
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
+  angles=NULL
+  for(i in 1:nbStruct){
+    angles=rbind(angles,CovAniso_getAnisoAngles__SWIG_0(model$getCova(i-1)))
+  }
+  rownames(angles)=model_getStructNames(model)
+  
+  idNugget=which(rownames(angles)=="Nugget Effect")
+  if(length(idNugget)>0){
+    angles[idNugget,]=NA
+  }
+  
+  angles=angles[,1:(ncol(angles)-1)]
+  return(angles)
+}
+
+
+
+
+
+
 # struct_eval<-function(h,name="SPHERICAL", range = 0.3, sill = 1, param = 1,mode="VG"){
 #   if(mode=="VG"){
 #     md=CovCalcMode(); md$setAsVario(TRUE);

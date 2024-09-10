@@ -1,6 +1,6 @@
 ---
-  title: "Variography using R/gstlearn - Correction"
-  author: "Thomas Romary, Fabien Ors, Lucia Clarotto, Mike Pereira, and Xavier Freulon"
+  title: "Kriging using (mini)gstlearn - Correction"
+  author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
   date: "Option Géostatistique 2024"
   output:
   pdf_document:
@@ -29,14 +29,33 @@ OptCst_defineByKey("ASP",0)
 
 ## Loading the Meuse dataset
 
+We start by loading the data from the `sp` package. We load two data frames:
+
+  * `meuse` is a R dataframe containing metal concentrations measured along the Meuse river in France. It contains the following variables:
+    -   **x** and **y**: easting and northing (m) coordinates
+    -   **cadmium**, **copper**, **lead**, **zinc**: topsoil heavy metal concentrations (ppm) (NB: obtained from composite samples **15m x 15m**)
+    -   **elev**: relative elevation above the river (m)
+    -   **dist**: distance to the river (normalized between 0 and 1)
+    -   **om**, **soil**, **lime**: soil characteristics (content of organic matter, type of soil, presence of lime)
+    -   **ffreq**: flooding frequency class: 1 = once in two years; 2 = once in ten years; 3 = one in 50 years
+    -   **landuse**: landuse classes
+    -   **dist.m**: distance to the river (m)
+    
+  * `meuse.grid` is a R dataframe containing describing a grid covering the Meuse river (and the samples in the `meuse` dataframe). It contains the following variables:
+    -   **x** and **y**: easting and northing (m) coordinates
+    -   **dist**: distance to the river (normalized between 0 and 1)
+    -   **soil**: soil characteristics (content of organic matter, type of soil, presence of lime)
+    -   **ffreq**: flooding frequency class: 1 = once in two years; 2 = once in ten years; 3 = one in 50 years
+    -   **part.a, part.b**: arbitrary division of the area in two areas, a and b
+
 ```{r loading_data_set}
-library(sp) # load library
+library(sp,warn.conflicts = F) # load library
 data(meuse) # load data
 data(meuse.grid) # load target grid
 ```
 
 
-Create the data Db
+Create the data Db from the `meuse` dataframe
 
 ```{r loading_in_Db}
 
@@ -48,7 +67,6 @@ var_name = c( "cadmium", "copper", "lead", "zinc")
 addVarToDb(data,var=log(meuse[,var_name]),vname = paste0("log_",var_name))
 
 # Plot the data
-
 dbplot_point(data,size="log_cadmium",sizeRange = c(0.1,3), pointColor = "red",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium")
 
@@ -60,8 +78,8 @@ Create the target (grid) Db
 target = dfToDbGrid(meuse.grid,coordnames = c('x','y'))
 
 # Plot the distance covariate (see universal kriging)
-
 dbplot_grid(target, color='dist',title='Distance to the river')
+
 ```
 
 # Kriging using R
