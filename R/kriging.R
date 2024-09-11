@@ -32,63 +32,138 @@
 #'
 #' Function to perform the kriging from a data set to a target  \pkg{gstlearn} DbGrid object.
 #'
-#' @param dbin Db containing the data.
-#' @param dbout Target Db.
-#' @param vname Name of the variable(s), stored as a (vector of) string(s).
-#' @param model A \pkg{gstlearn} Model object containing a fitted model.
-#' @param type Type of kriging, either "simple" or "ordinary".
-#' @param prefix prefix of the resulting predicted variables (kriging and optionnally standard deviation)
-#' @param mean Mean value if simple kriging is requested 
-#' @param neighborhood Type of neighborhood to used, either "unique" or a vector of the form (radius), (nmin, nmax) or (nmin, nmax, radius) see details. 
-#' @param std Boolean value indicating whether the prediction standard deviation should be computed.
-#'
-#' @details the vector (nmin, nmax, radius) indicates the minimum and the maximum number of points in the neighborhood and its optional radius.
+#' @param dbin Db object containing the data points.
+#' @param dbout Db object containing the target points, i.e. the points where the kriging predictor will be computed.
+#' @param vname Name of the variable(s) to be predicted, stored as a (vector of) string(s).
+#' @param model Model object containing the model used for kriging. For universal kriging, the model should be fitted on residuals.
+#' @param type Type of kriging: either "simple" or "ordinary". Ignored if `polDrift` or `extDrift` is specified, in which case, universal kriging is performed.
+#' @param polDrift Integer specifying the order of the polynomial drift for universal kriging. 
+#' @param extDrift Name of the variable(s) specifying the external drift, stored as a (vector of) string(s), for universal kriging with external drift.
+#' @param mean Mean value if simple kriging is requested. Ignored when other types of kriging are performed.
+#' @param neighborhood Type of neighborhood to used, either "unique" or a vector of the form (radius), (nmin, nmax) or (nmin, nmax, radius). See details. 
+#' @param stdev Boolean value indicating whether the prediction standard deviation should be computed.
+#' @param prefix Prefix used to store the results
 #' 
-#' @return the dbout where the prediction results have been added with the associated prefix.
+#' @details When specifying moving neighborhoods, the vector (nmin, nmax, radius) indicates the minimum and the maximum number of points in the neighborhood and the radius of the neighborhood.
+#' 
+#' @return The function directly adds the kriging predictions (and if applicable, standard-deviations) to the Db in `dbout`. The names of these newly created variables will be of the form `prefix.vname.estim` for the predictions and  `prefix.vname.stdev` for the standard deviation.
 #'
 #' @export
 #'
 #' @examples
 #' library(minigst)
 #'
-#' #todo
-#' 
-#' 
-#'  
+#' # Load Data
+#' data("Scotland") # Dataframe containing the observations
+#' data("ScotlandGrid") # Dattaframe containing the target prediction locations
 #'
-minikriging<-function (dbin, dbout, vname, drift = NULL, model, type = "ordinary", prefix="OK", mean = NULL, neighborhood = "unique", std = TRUE){
+#' # Create Observation grid
+#' obsDb=dfToDb(df=Scotland, coordnames=c("Longitude", "Latitude"))
+#' 
+#'
+#' # Create directional experimental variograms along the directions 30 deg and -30 deg for the variable "Elevation"
+#' varioExp = vario_exp(db=obsDb, vname="Elevation", dir=c(30,-30), nlag=20, dlag=10.)
+#' # Fit a model on the resulting experimental variogram
+#' struct_names = c("NUGGET","SPHERICAL", "SPHERICAL")
+#' model = model_fit(varioExp, struct=struct_names, pruneModel = TRUE)
+#' 
+#' # Create target grid
+#' targetDb=dfToDbGrid(df=ScotlandGrid,coordnames=c("Longitude","Latitude"))
+#' 
+#' # Perform ordinary kriging predictions and compute standard deviations for the variable `January_temp`
+#' minikriging(obsDb, targetDb, vname = "January_temp", model = model, std = TRUE)
+#'  
+#'# Plot kriging predictions
+#' dbplot_grid(targetDb,color="K.January_temp.estim")
+#' dbplot_point(obsDb,size="January_temp",sizeRange=c(0.1,2),add=TRUE,title="Kriging predictions on grid")
+#' 
+#'# Plot kriging standard deviations
+#' dbplot_grid(targetDb,color="K.January_temp.stdev")
+#' dbplot_point(obsDb,size="January_temp",sizeRange=c(0.1,2),add=TRUE,title="Kriging std dev")
+#' 
+minikriging<-function (dbin, dbout, vname, model, type = "ordinary", polDrift = NULL, extDrift=NULL, mean = NULL, neighborhood = "unique", std = TRUE,prefix="K"){
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
+  
   if (type == "simple"){
-    if (!as.numeric(mean)){stop('The mean is not properly specified for the simple kriging.')}
-    err = model$setMean(mean)
-    err = kriging(dbin=dbin, dbout=dbout, model=model, 
+    if (!is.numeric(mean)){stop('The mean is not properly specified for the simple kriging.')}
+    
+    ## Create a copy of the model without any drift and set the mean
+    mdl=Model(model)
+    err = mdl$delAllDrifts()
+    err = mdl$setMean(mean)
+    
+    ## Delete previous kriging result
+    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
+    if(std){
+      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
+    }
+    ## Compute kriging
+    err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
                   neigh=Neigh,
                   flag_est=TRUE, flag_std=std, flag_varz=FALSE,
                   namconv=NamingConvention(prefix)
     )
+    ## Remove locators automatically assigned by the `kriging` function
+    Db_clearLocators(dbout,ELoc_Z())
+    Db_clearLocators(dbin,ELoc_Z())
+    
   }
   else if (type == "ordinary"){
-    err = model$delAllDrifts()
-    err = model$addDrift(DriftM())
-    err = kriging(dbin=dbin, dbout=dbout, model=model, 
-                  neigh=Neigh,
-                  flag_est=TRUE, flag_std=std, flag_varz=FALSE,
-                  namconv=NamingConvention(prefix)
-    )
-  }
-  else if (type == "universal" & !is.null(drift)){
-    for (xvar in drift){
-      dbout$setLocator(xvar,ELoc_F())
+    
+    ## Create a copy of the model without any drift and set universality condition
+    mdl=Model(model)
+    err = mdl$delAllDrifts()
+    err = mdl$addDrift(DriftM())
+    
+    ## Delete previous kriging result
+    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
+    if(std){
+      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
     }
-    err = kriging(dbin=dbin, dbout=dbout, model=model, 
+    ## Kriging
+    err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
                   neigh=Neigh,
                   flag_est=TRUE, flag_std=std, flag_varz=FALSE,
                   namconv=NamingConvention(prefix)
     )
+    ## Remove locators automatically assigned by the `kriging` function
+    Db_clearLocators(dbout,ELoc_Z())
+    Db_clearLocators(dbin,ELoc_Z())
+    
+    }
+  else if (!is.null(drift) || !is.null(polDrift)){
+    
+    ## Create a copy of the model without any drift and set the mean
+    mdl=Model(model)
+    err = mdl$delAllDrifts()
+    ## Add drifts to model
+    .addDriftsToModel(mdl,polDrift,length(extDrift))
+    
+    ## Set drifts in databases
+    setVar(dbin,extDrift,"Drift")
+    setVar(dbout,extDrift,"Drift")
+    
+    ## Delete previous kriging result
+    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
+    if(std){
+      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
+    }
+    ## Kriging
+    err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
+                  neigh=Neigh,
+                  flag_est=TRUE, flag_std=std, flag_varz=FALSE,
+                  namconv=NamingConvention(prefix)
+    )
+    ## Remove locators automatically assigned by the `kriging` function
+    Db_clearLocators(dbout,ELoc_Z())
+    Db_clearLocators(dbout,ELoc_F())
+    Db_clearLocators(dbin,ELoc_Z())
+    Db_clearLocators(dbin,ELoc_F())
   }
   else {stop("The kriging type should be either simple ordinary, or universal (with a drift properly defined)")}
-  return(dbout)
+  
+  return(invisible(NULL))
 }
 
 

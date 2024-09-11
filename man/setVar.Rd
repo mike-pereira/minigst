@@ -4,26 +4,29 @@
 \alias{setVar}
 \title{Set variables of interest in a Db}
 \usage{
-setVar(db, vname)
+setVar(db, vname, mode = "Var")
 }
 \arguments{
 \item{db}{Db object.}
 
 \item{vname}{Name(s) of the selected variable(s), stored as a (vector of) string(s).}
+
+\item{mode}{Role of the variable: either "Var" for variable of interest, or "Drift" for drift specification.}
 }
 \value{
 The function updates \code{db} and returns nothing.
 }
 \description{
-Function to select which variables in the Db are the variables of interest in the study.
+Function to select which variables in the Db are the variables of interest or drifts in the study.
 }
 \examples{
 library(minigst)
 
 # Load Data
-data("Scotland")
+
 
 # Create Db
+data("Scotland")
 db=dfToDb(df=Scotland, coordnames=c("Longitude", "Latitude"))
 db$display()
 

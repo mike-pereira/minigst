@@ -263,9 +263,6 @@ dfToDb<-function(df,coordnames,isGrid=FALSE){
         DbGrid_migrateAllVariables(data,dbG,flagAddSampleRank = FALSE)
       }
     }else{ #if the gridded points are not a discretization of a rectangular parallelepiped
-      if(ncol(df)<=length(coords)){
-        data = cbind(data,rep(1,nrow(df)))
-      }
       data = Db() # creating the data base
       for (vn in var_name) {data[vn] = suppressWarnings(as.numeric(df[,vn]))}
       ## Set coordinates
@@ -275,13 +272,14 @@ dfToDb<-function(df,coordnames,isGrid=FALSE){
         ddx=c(ddx,unique(diff(coords[[i]])))
       }
       dbG = DbGrid_createCoveringDb(data,dx = ddx)
+      for(i in 1:ndim){
+        err=dbG$setName(paste0("x",i),coordnames[i])
+      }
       err = migrateMulti(dbin=data, dbout = dbG,  names = names(df)[(ndim+1):length(var_name)], namconv=NamingConvention())
+      err=Db_clearLocators(dbG,ELoc_Z())
       # gérer la sélection
-      res = dbG$addSelection(tab = !is.na(dbG[var_name[ndim+1]]), name = "Sel")
+      res = dbG$addSelection(tab = !is.na(dbG[var_name[ndim+1]]), name = "Sel_Not_NA")
     }
-    
-    
-    
     return(dbG)
     
   }
@@ -420,10 +418,11 @@ clearSel<-function(db){
 
 #' Set variables of interest in a Db
 #'
-#' Function to select which variables in the Db are the variables of interest in the study.
+#' Function to select which variables in the Db are the variables of interest or drifts in the study.
 #'
 #' @param db Db object.
 #' @param vname Name(s) of the selected variable(s), stored as a (vector of) string(s).
+#' @param mode Role of the variable: either "Var" for variable of interest, or "Drift" for drift specification.
 #'
 #' @return The function updates \code{db} and returns nothing.
 #'
@@ -432,9 +431,10 @@ clearSel<-function(db){
 #' library(minigst)
 #'
 #' # Load Data
-#' data("Scotland")
+#' 
 #'
 #' # Create Db
+#' data("Scotland")
 #' db=dfToDb(df=Scotland, coordnames=c("Longitude", "Latitude"))
 #' db$display()
 #'
@@ -442,12 +442,22 @@ clearSel<-function(db){
 #' setVar(db=db, vname="Elevation")
 #' db$display()
 #'
-setVar<-function(db,vname){
-  db$clearLocators(ELoc_Z())
-  if(length(intersect(colnames(db[]),vname))==0){
-    stop("Check the variable names: one or several of the supplied names are absent from the Db.")
+setVar<-function(db,vname,mode="Var"){
+  if(mode=="Var"){
+    db$clearLocators(ELoc_Z())
+    if(length(intersect(colnames(db[]),vname))==0){
+      stop("Check the variable names: one or several of the supplied names are absent from the Db.")
+    }
+    err = db$setLocators(name = vname, locatorType = ELoc_Z(), cleanSameLocator = TRUE)
   }
-  err = db$setLocators(name = vname, locatorType = ELoc_Z(), cleanSameLocator = TRUE)
+  if(mode=="Drift"){
+    db$clearLocators(ELoc_F())
+    if(length(intersect(colnames(db[]),vname))==0){
+      stop("Check the variable names: one or several of the supplied names are absent from the Db.")
+    }
+    err = db$setLocators(name = vname, locatorType = ELoc_F(), cleanSameLocator = TRUE)
+  }
+
   return(invisible(NULL))
 }
 
@@ -532,3 +542,14 @@ summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
   return(as.data.frame(res))
   
 }
+
+#'
+#'Function to delete variable which already exists in a Db
+#'
+.deleteExistingVar<-function(db,vname){
+  if(vname %in% colnames(db[])){
+    db$deleteColumns(names = vname)
+  }
+  return(invisible(NULL))
+}
+

@@ -309,7 +309,7 @@ vario_map<-function(db,vname,gridRes=20,plot=T){
 #'
 #'
 model_fit<-function(vario,drift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
-  types = ECov_fromKeys(struct)
+  types = .checkStructNames(struct)
   model = Model()
   if(class(vario)=="_p_Vario"){
     if (!is.null(drift)){
@@ -330,13 +330,12 @@ model_fit<-function(vario,drift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoMod
 }
 
 
-
 #' Basic structures for models
 #'
-#' Print the list of all available basic structures/covariance functions in \pkg{gstlearn}.
+#' Get the list of all available basic structures/covariance functions in \pkg{gstlearn}.
 #'
 #'
-#' @return Prints the list of names and returns nothing.
+#' @return `getAllStruct` returns a dataframe (with two columns `Name` and `Description`) listing all the available basic structures, whereas `printAllStruct` only prints this dataframe and returns nothing.
 #'
 #' @export
 #'
@@ -346,16 +345,79 @@ model_fit<-function(vario,drift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoMod
 #' # Print list of basic structures
 #' printAllStruct()
 #'
+#' # Store the name of the 3rd covariance structure in the list ("SPHERICAL")
+#' struct_name=getAllStruct()$Name[3]
+#' print(struct_name)
+#' 
+getAllStruct<-function(){
+  ## Available structures
+  AllStruct=t(matrix(c(0,"NUGGET","Nugget effect",
+                       1,"EXPONENTIAL","Exponential covariance",
+                       2,"SPHERICAL","Spherical covariance",
+                       3,"GAUSSIAN","Gaussian covariance",
+                       4,"CUBIC","Cubic covariance",
+                       5,"SINCARD","Sine Cardinal covariance",
+                       6,"BESSEL_J","Bessel J covariance",
+                       7,"BESSEL_K","Bessel K / Matérn covariance",
+                       8,"GAMMA","Gamma covariance",
+                       9,"CAUCHY","Cauchy covariance",
+                       10,"STABLE","Stable covariance",
+                       11,"LINEAR","Linear covariance",
+                       12,"POWER","Power covariance",
+                       13,"ORDER1_GC","First Order Generalized covariance",
+                       14,"SPLINE_GC","Spline Generalized covariance",
+                       15,"ORDER3_GC","Third Order Generalized covariance",
+                       16,"ORDER5_GC","Fifth Order Generalized covariance",
+                       17,"COSINUS","Cosine covariance",
+                       18,"TRIANGLE","Triangle covariance",
+                       19,"COSEXP","Cosine Exponential covariance",
+                       20,"REG1D","1-D Regular covariance",
+                       21,"PENTA","Pentamodel covariance",
+                       22,"SPLINE2_GC","Order-2 Spline covariance",
+                       23,"STORKEY","Storkey covariance in 1-D covariance",
+                       24,"WENDLAND0","Wendland covariance (2,0)",
+                       25,"WENDLAND1","Wendland covariance (3,1)",
+                       26,"WENDLAND2","Wendland covariance (4,2)",
+                       27,"MARKOV","Markovian covariances"),nrow=3))
+  AllStruct=AllStruct[,2:3]
+  colnames(AllStruct)=c('Name','Description')
+  AllStruct=data.frame(AllStruct)
+  return(AllStruct)
+}
+
+#' @rdname getAllStruct
+#'
+#' @export
+#'
 printAllStruct<-function(){
-  ECov_printAll()
+  print(.getAllStruct())
   return(invisible(NULL))
 }
 
 
+tit<-function(){
+  .checkStructNames("Exp")
+}
 
+#'
+#' Wraper for the function that doesn't crash R if names are mispecified
+#'
+.checkStructNames<-function(struct_names){
+  AllStruct=getAllStruct()
+  for(str in struct_names){
+    # Search in list of available structure names (search names converted to lowercase to make the search case-insensitive)
+    is_found=tolower(str) %in% tolower(AllStruct$Name)
+    if(!is_found){
+      stop("Structure name '",str,"' is not part of the available names. Please choose a name from: ", paste(AllStruct$Name,collapse=", "))
+    }
+  }
+  return(ECov_fromKeys(struct_names))
+}
 
+#'
+#'Function to check the covariance parameters proposed by the user
+#'
 .checkCovParam<-function(param,nameParam,n){
-  
   paramf=param
   if((!is.numeric(param)) || (sum(is.na(param)>0))){
     stop("The argument ",nameParam,"should be numeric, and NA are not allowed.")
@@ -365,7 +427,6 @@ printAllStruct<-function(){
   }else if(length(param)!=n){
     stop(paste0("The length of ", nameParam," (",length(param),") must be the same as the number of structures (",n,")"))
   }
-  
   return(paramf)
 }
 
@@ -407,7 +468,7 @@ createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=
   ## Create empty model for 1 variable, and spaceDim dimension
   model = Model(1,ndim)
   for(i in 1:nstruct){
-    err=Model_addCovFromParam(model,type = ECov_fromKey(struct[i]), sill = sill[i], range=range[i],param=param[i]) ## Ajouter un nugget de variance 1
+    err=Model_addCovFromParam(model,type = .checkStructNames(struct[i]), sill = sill[i], range=range[i],param=param[i]) ## Ajouter un nugget de variance 1
   }
   model$setMeans(mean)
   
@@ -563,9 +624,7 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
   }else{
     db2=NULL
   }
-  
-  
-  
+
   if(is.null(db2)){
     res=Model_evalCovMatrixSymmetric(model,db1,mode=md)$toTL()
     # res=Model_evalCovMatrix(model,db1,mode=md)$toTL()
@@ -588,13 +647,13 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
 #'
 #' @param model Model object
 #'
-#' @details 
+#' @details Let `Nstruct` be the number of basic structures in the model, and `Nvar` its number of  variables, and `Ndim` the number of space dimsensions.
 #' \itemize{
-#'   \item \code{model_getStructNames} returns a vector containing the names of the basic structures composing the model.
-#'   \item \code{model_getRanges} returns a matrix where the rows contain the range values of each basic structure of the model, and the columns to the range values in the principal direction and cross-direction(s) of the basic structure.
-#'   \item \code{model_getScales} returns a matrix where the rows contain the scale values of each basic structure of the model, and the columns to the scale values in the principal direction and cross-direction(s) of the basic structure.
-#'   \item \code{model_getSills} returns an array with three dimensions: the first two dimensions corresponding to the variables modeled in a given basic structure, and the third dimension corresponds to the different basic structures.
-#'   \item \code{model_getAngles} returns a vector containing the anistropy angles of each basic structure.
+#'   \item \code{model_getStructNames} returns a vector of size `Nsctruct` containing the names of the basic structures composing the model.
+#'   \item \code{model_getRanges} returns a matrix of size `Nstruct x Ndim` where the rows contain the range values of each basic structure of the model, and the columns to the range values in the principal direction and cross-direction(s) of the basic structure.
+#'   \item \code{model_getScales} returns a matrix of size `Nstruct x Ndim` where the rows contain the scale values of each basic structure of the model, and the columns to the scale values in the principal direction and cross-direction(s) of the basic structure.
+#'   \item \code{model_getSills} returns an array of size `Nvar x Nvar x Nstruct`: the first two dimensions correspond the covariance matrix between the variables modeled in a given basic structure, and the third dimension corresponds to the different basic structures. For instance, \code{model_getSills(model)[, , 1]} returns the covariance matrix between the `Nvar` variables, as modeled by the first basic structure in the model. If `Nvar=1`, then we retrieve the variance of the only variable modeled by the basic structure.
+#'   \item \code{model_getAngles} returns a matrix of size `Nstruct x (Ndim - 1)` whose rows contain the anisotropy angle(s) of each basic structure.
 #' }
 #' 
 #'
@@ -707,7 +766,27 @@ model_getAnisoAngles<-function(model){
 }
 
 
+.addDriftsToModel<-function(mdl,polDrift=NULL,nExtDrift=0){
 
+  err = mdl$delAllDrifts()
+  ## Check if model is coherent with supplied polynomial drift
+  if(!is.null(polDrift)){
+    ndim=Model_getDimensionNumber(mdl)
+    if(polDrift>=0){
+      err = mdl$addDrift(DriftM())
+    }
+    if(polDrift>=1){
+      indPol=data.frame(matrix(rep(0:polDrift,ndim),ncol=ndim))
+      indPol=expand.grid(as.list(indPol))
+      for(i in 2:nrow(indPol)){
+        err = mdl$addDrift(DriftM(indPol[i,]))
+      }
+    }
+  }
+  if(nExtDrift>0){
+    for(i in 0:(nExtDrift-1)){err=mdl$addDrift(DriftF(i))}
+  }
+}
 
 
 
