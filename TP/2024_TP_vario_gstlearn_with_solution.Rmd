@@ -202,7 +202,7 @@ vario = 1/2*outer(dat[,"log_cadmium"],dat[,"log_cadmium"],"-")^2
 2.  Plot the variogram cloud for the cadmium concentration, and eventually for the other metals. *(Hint: Use the function `plot`)*
 
 ```{r R_variogram_cloud_plot, echo=TRUE, eval=TRUE}
-plot(dist,vario,cex=.25,xlab="Distance[m]",ylab=" ",main="Variogram cloud for cadmium",pch=19)
+plot(dist_mat,vario,cex=.25,xlab="Distance[m]",ylab=" ",main="Variogram cloud for cadmium",pch=19)
 ```
 
 ## Experimental variogram (omnidirectional)
@@ -213,8 +213,8 @@ plot(dist,vario,cex=.25,xlab="Distance[m]",ylab=" ",main="Variogram cloud for ca
 lags = seq(0,2000,by=100)
 
 # With the functions cut and tapply
-sets = cut(dist,lags) # assign a lag to each distance
-hh = tapply(dist,sets,mean) # mean distance for each set
+sets = cut(dist_mat,lags) # assign a lag to each distance
+hh = tapply(dist_mat,sets,mean) # mean distance for each set
 gg = tapply(vario,sets,mean) # mean "variogram" value for each set
 npairs = table(sets) # number of pairs for each set
 
@@ -224,8 +224,8 @@ hh = rep(0,length(lags))
 gg = rep(0,length(lags))
 npairs = rep(0,length(lags))
 for (i in seq(lags)){
-  sel = dist<=lags[i+1] & dist>lags[i]
-  hh[i] = mean(dist[sel])  # average distance of the selected pairs for each lag
+  sel = dist_mat<=lags[i+1] & dist_mat>lags[i]
+  hh[i] = mean(dist_mat[sel])  # average distance of the selected pairs for each lag
   gg[i] = mean(vario[sel])  # average vario of the selected pairs for each lag
   npairs[i] = length(which(sel)) # number of selected pairs
 }
@@ -272,6 +272,8 @@ curve(expo(x,a,C),add=TRUE,col="red")
   * Option 2: use the function `optim` to find those parameters. In that case, you need to build a function that takes a vector `theta=c(a,C)` as input and returns the sum of squares you want to minimize. You can compare both methods.
 
 ```{r R_cov_auto_fitting, echo=TRUE, eval=TRUE}
+hh2 = hh
+gg2 = gg
 # option 1
 m = nls(gg2~expo(hh2,a,C),start=c(a=400,C=2))
 
