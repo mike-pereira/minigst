@@ -191,10 +191,10 @@ SKsd = sqrt(SKvar)
 
 par(mfrow=c(1,2)) #<- To create an array of plots
 # Plot of the kriging predictions using `quilt.plot` from the `fields` package
-quilt.plot(targetData$x, targetData$y, SKestim, asp=1,main="Simple kriging predictions")
+bubblePlot(targetData$x, targetData$y, SKestim, asp=1,main="Simple kriging predictions")
 points(obsData$x,obsData$y,pch=19,cex=0.25)
 # Plot of the kriging standard deviations using `quilt.plot` from the `fields` package
-quilt.plot(targetData$x, targetData$y, SKsd, asp=1,main="Simple kriging std-dev")
+bubblePlot(targetData$x, targetData$y, SKsd, asp=1,main="Simple kriging std-dev")
 points(obsData$x,obsData$y,pch=19,cex=0.25)
 par(mfrow=c(1,1)) #<- To revert to a single plot
 

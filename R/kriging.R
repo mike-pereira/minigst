@@ -132,7 +132,7 @@ minikriging<-function (dbin, dbout, vname, model, type = "ordinary", polDrift = 
     Db_clearLocators(dbin,ELoc_Z())
     
     }
-  else if (!is.null(drift) || !is.null(polDrift)){
+  else if (!is.null(extDrift) || !is.null(polDrift)){
     
     ## Create a copy of the model without any drift and set the mean
     mdl=Model(model)
