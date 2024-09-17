@@ -1,3 +1,4 @@
+
 #' Function to create a gstlearn object containing the parameters of 
 #' the neighborhood used to perform kriging
 #'
