@@ -11,12 +11,12 @@ dbplot_grid(
   colValLimits = NULL,
   cmap = "viridis",
   naColor = NA,
-  colorLegendTitle = title,
+  colorLegendTitle = NULL,
   contourLegendTitle = NULL,
   asp = 0,
-  xlab = NA,
-  ylab = NA,
-  title = NA,
+  xlab = NULL,
+  ylab = NULL,
+  title = NULL,
   ...
 )
 }

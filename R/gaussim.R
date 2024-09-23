@@ -28,7 +28,6 @@
 #' km = kriging_mean(db = db, vname = "Elevation", model = model)
 #' km
 #' 
-
 kriging_mean <- function(db, vname, model){
   
   setVar(db,vname)
@@ -83,7 +82,6 @@ kriging_mean <- function(db, vname, model){
 #' # Set the mean in the model
 #' setMean(model,km)
 #' 
-
 setMean <- function(model,mu){
   err = model$setMeans(mu)
   return(invisible(NULL))
@@ -122,7 +120,6 @@ setMean <- function(model,mu){
 #' rgrf(target=tgt, model=mod, nsim = 1, simname = "Mysim") 
 #' dbplot_grid(db=tgt,color="Mysim", cmap = "Spectral", title = "Simulation", colorLegendTitle= "Value")
 #' 
-
 rgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = NULL, dbcond = NULL, vcond = NULL){
   
   if(is.null(dbcond)){ # Unconditional simulations

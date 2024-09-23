@@ -18,9 +18,9 @@ dbplot_point(
   labelColor = "black",
   pointColor = "black",
   labelLegendTitle = NULL,
-  xlab = NA,
-  ylab = NA,
-  title = NA,
+  xlab = NULL,
+  ylab = NULL,
+  title = NULL,
   add = FALSE,
   ...
 )

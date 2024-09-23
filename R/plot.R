@@ -75,7 +75,7 @@ dbplot_point<-function(db,color=NULL,size=NULL,label=NULL,
                        sizeRange=c(1,5),absSize=FALSE,sizeLegendTitle=NULL,
                        cmap=NULL,discreteVal=FALSE,colorLegendTitle=NULL,
                        labelColor="black",pointColor="black",labelLegendTitle=NULL,
-                       xlab = NA, ylab = NA, title = NA, add = FALSE,...){
+                       xlab = NULL, ylab = NULL, title = NULL, add = FALSE,...){
   
   if(is.logical(add)){
     if(add){
@@ -103,7 +103,17 @@ dbplot_point<-function(db,color=NULL,size=NULL,label=NULL,
                    legendNameLabel=labelLegendTitle,
                    textColor=labelColor, ...)
     }
-  p=p+plot.decoration(xlab = xlab, ylab = ylab, title = title)
+  if(is.null(xlab)){
+    xlab=Db_getNamesByLocator(db,ELoc_X())[1]
+  }
+  if(is.null(ylab)){
+    ylab=Db_getNamesByLocator(db,ELoc_X())[2]
+  }
+  if(is.null(title)){
+    p=p+plot.decoration(xlab = xlab, ylab = ylab,title = "")
+  }else{
+    p=p+plot.decoration(xlab = xlab, ylab = ylab, title = title)
+  }
   return(p)
 }
 
@@ -242,16 +252,26 @@ addPoints<-function(plt=last.plot(),x=NULL,y=NULL,color="black", shape = 16, siz
 #'
 dbplot_grid<-function(dbGrid,color=NULL, contour=NULL, colValLimits=NULL,
                       cmap='viridis', naColor=NA,
-                      colorLegendTitle=title,contourLegendTitle=NULL,
+                      colorLegendTitle=NULL,contourLegendTitle=NULL,
                       asp=0,
-                      xlab = NA, ylab = NA, title = NA,...){
+                      xlab = NULL, ylab = NULL, title = NULL,...){
   p=ggDefaultGeographic()
   p=p+plot.grid(dbGrid, nameRaster=color, nameContour=contour, limits=colValLimits,
                 palette=cmap,legendNameRaster=colorLegendTitle, naColor = naColor,
                 flagLegendRaster=!is.null(color), flagLegendContour=!is.null(contour),
                 legendNameContour=contourLegendTitle,...)
   p=p+plot.geometry(asp=asp)
-  p=p+plot.decoration(xlab = xlab, ylab = ylab, title = title)
+  if(is.null(xlab)){
+    xlab=Db_getNamesByLocator(dbGrid,ELoc_X())[1]
+  }
+  if(is.null(ylab)){
+    ylab=Db_getNamesByLocator(dbGrid,ELoc_X())[2]
+  }
+  if(is.null(title)){
+    p=p+plot.decoration(xlab = xlab, ylab = ylab,title = "")
+  }else{
+    p=p+plot.decoration(xlab = xlab, ylab = ylab, title = title)
+  }
   return(p)
 }
 
@@ -507,12 +527,8 @@ plot_vario<-function(expvario=NA,
 #' 
 #' @export
 #'
-#' @examples
-#' library(minigst)
-#'
-#' #todo
 #' 
-plot_hist<-function (db,vname,color = "blue",nbin=30, title,xlab){
+plot_hist<-function (db,vname,color = "blue",nbin=30, title=NULL,xlab=NULL){
   p = ggplot()
   p = p + plot.hist(db,name=vname,bins = nbin,fill=color)
   p = p + plot.decoration(xlab=xlab, title=title)
@@ -525,27 +541,64 @@ plot_hist<-function (db,vname,color = "blue",nbin=30, title,xlab){
 #'
 #'
 #' @param db Db object.
-#' @param vnamex name of the variable to be represented in abscissa
-#' @param vnamey name of the variable to be represented in ordinate
-#' @param reg Boolean, should the regression line be plotted
-#' @param sameaxes Boolean, should both variables be represented on the same axes
+#' @param vnamex Name of the variable to be represented in abscissa
+#' @param vnamey Name of the variable to be represented in ordinate
+#' @param xlab Label of x-axis
+#' @param ylab Label of y-axis
 #' @param title Title of plot.
-#' @param xlab label of the abscissa
-#' @param ylab label of the ordinate
+#' @param asPoints Whether to plot points using indivudal symbols or counting bins
+#' @param nbins Number of discretization bins 
+#' @param regrLine Whether to add a regression line to the plot
+#' @param regrLineColor,regrLineType,regrLineWidth Color, type and width of the regression line
+#' @param eqLine Whether to add a regression line x=y to the plot
+#' @param eqLineColor,eqLineType,eqLineWidth Color, type and width of the  line x=y
+#' @param verbose Whether to print the regression results (when `regrLine=TRUE`)
 #' 
 #' @return A \pkg{ggplot2} object containing the plot. If stored in a variable, use the function \code{print} to display the plot.
 #' 
 #' @export
 #'
-#' @examples
-#' library(minigst)
-#'
-#' #todo
 #' 
-plot_correlation<-function (db,vnamex,vnamey,reg=T,sameaxes=T, nbin=100,title,xlab,ylab){
+plot_scatter<-function (db,vnamex,vnamey,
+                        xlab=NULL,ylab=NULL,title=NULL,
+                        asPoints=FALSE,nbins=25,
+                        regrLine=FALSE, regrLineColor = "blue", regrLineType = "solid",regrLineWidth = 1.25,
+                        eqLine=FALSE, eqLineColor = "red", eqLineType = "dashed", eqLineWidth = 1.25,
+                        verbose=TRUE){
   p = ggplot()
-  p = p + plot.correlation(db,namex=vnamex,namey=vnamey, 
-                           flagRegr=reg, flagSameAxes=sameaxes, bins=nbin)
+  
+  res = correlationPairs(db, db, vnamex, vnamey)
+  x = db$getValuesByNames(res[[1]], vnamex)
+  y = db$getValuesByNames(res[[2]], vnamey)
+  
+  if (asPoints)
+    p = p+ plot.XY(x, y, flagLine=FALSE, flagPoint=TRUE)
+  else
+    p=p+geom_bin_2d(aes())
+    p =p+plot.hist2d(x, y,bins=nbins)
+  
+
+  if (eqLine)
+  {
+      p=p+geom_abline(intercept=0,slope=1,
+                      linetype =eqLineType, color = eqLineColor,linewidth=eqLineWidth)
+    }
+  if (regrLine)
+  {
+    regr = regression(db, vnamey, vnamex, flagCst=TRUE)
+    if (regr$getNvar() > 0)
+    {
+      a = regr$getCoeff(0)
+      b = regr$getCoeff(1)
+      r2=1-sum((a+b*db[vnamex]-db[vnamey])**2,na.rm=T)/sum((mean(db[vnamey],na.rm=T)-db[vnamey])**2,na.rm=T)
+      p=p+geom_abline(intercept=a,slope=b,
+                      linetype = regrLineType, color = regrLineColor,linewidth=regrLineWidth)
+      if(verbose){
+        message(paste0("Regression results: Slope=",b,"; Intercept=",a,"; R2=",r2))
+      }
+    }
+  }
+  
   p = p + plot.decoration(title=title, 
                           xlab=xlab, ylab=ylab)
   return(p)
