@@ -11,4 +11,4 @@ Encoding: UTF-8
 LazyData: true
 Imports: gstlearn (>= 1.3.2), ggplot2, ggpubr
 Depends: gstlearn (>= 1.3.2), ggplot2, ggpubr
-RoxygenNote: 7.2.3
+RoxygenNote: 7.3.2

@@ -390,7 +390,7 @@ getAllStruct<-function(){
 #' @export
 #'
 printAllStruct<-function(){
-  print(.getAllStruct())
+  print(getAllStruct())
   return(invisible(NULL))
 }
 

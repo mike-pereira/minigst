@@ -18,7 +18,6 @@ minikriging(
   std = TRUE,
   prefix = "K"
 )
-
 minixvalid(
   dbin,
   vname,
@@ -31,6 +30,7 @@ minixvalid(
   std = TRUE,
   prefix = "Xvalid"
 )
+
 }
 \arguments{
 \item{dbin}{Db object containing the data points.}

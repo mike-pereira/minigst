@@ -116,7 +116,7 @@ plot_vario(varioexp_drift,model = model_drift,pairDisplay = "size",
 
 ```{r}
 
-target = minikriging(data, target, vname = "log_cadmium", drift ='dist.m', model = model_drift, type = "universal", prefix = "UK", neighborhood = "unique", std = TRUE)
+minikriging(data, target, vname = "log_cadmium", extDrift ='dist.m', model = model_drift, type = "universal", prefix = "UK", neighborhood = "unique", std = TRUE)
 
 ## Plot kriging estimate
 dbplot_grid(target, color='UK.log_cadmium.estim',title='Predicted log cadmium concentration')
@@ -207,7 +207,6 @@ We can also compute variograms in **geoR**.
 
 Omnidirectional
 ```{r}
-par(mfrow=c(1,2))
 vg <- variog(meuse.geoR, uvec = seq(0,2000,l=20), bin.cloud = T)
 plot(vg)
 ```
@@ -245,14 +244,9 @@ We can represent the resulting fitting on the variogram
 
 ```{r}
 plot(vg)
-lines(vg.dist)
+lines(vg.dist,col='red')
 lines(ml)
-lines(ml.dist)
-
-plot(vg.72)
-lines(ml)
-lines(ml.dist)
-par(mfrow=c(1,1))
+lines(ml.dist,col='red')
 ```
 
 
