@@ -78,6 +78,8 @@
 #'
 #' @param db Db object.
 #' @param vname Name(s) of the variable(s), stored as a (vector of) string(s).
+#' @param polDrift Integer specifying the order of the polynomial drift for universal kriging. 
+#' @param extDrift Name of the variable(s) specifying the external drift, stored as a (vector of) string(s), for universal kriging with external drift.
 #' @param dir Direction used to compute the variogram. The default (\code{NULL}) reverts to an omnidirectional variogram. The directions can be specified either by a vector of angles in degrees (only in 2D and the value(s) denote the angle between the horizontal axis and the desired direction), or as a matrix whose rows contain direction vectors.
 #' @param nlag Number of lags used to compute the variograms.
 #' @param dlag Distance of the lags.
@@ -91,6 +93,8 @@
 #' The parameter \code{tolang} represents a tolerance on the angle and is expressed as an angle.
 #' For a given lag value \eqn{h} and a given angle \eqn{theta}, all the pairs with an angle between (\eqn{theta}-\code{tolang}) and (\eqn{theta}+\code{tolang})
 #' are used to compute the correponding variogram value \eqn{gamma(h)}.
+#' 
+#' Finally, note that when adding external drifts, a constant drift (bias term) is automatically added as well.
 #'
 #' @return The function returns a \pkg{gstlearn} object containing the experimental variogram(s) (and cross-variograms).
 #'
@@ -120,23 +124,24 @@
 #' plot_vario(varioExpDir2var, title="Experimental (cross)-variograms for the variables 'Elevation' and 'January_temp")
 #'
 #'
-vario_exp<-function(db,vname,drift=NULL,dir=NULL,nlag=20, dlag=100,
+vario_exp<-function(db,vname, polDrift = NULL, extDrift=NULL,dir=NULL,nlag=20, dlag=100,
                     toldis = 0.5, tolang= 22.5){
   setVar(db,vname)
   
   varioParam= .createVarioParam(db,dir,nlag, dlag,toldis,tolang)
   
   varioexp = Vario(varioParam)
-  if (is.null(drift)){
-    err = varioexp$compute(db)
-  }
-  if (!is.null(drift)){
-    for (xvar in drift){
-      db$setLocator(xvar,ELoc_F())
-    }
+
+  if (!is.null(extDrift) || !is.null(polDrift)){
+    
+    setVar(db,extDrift,"Drift")
     EDmodel = Model_create()
-    err = EDmodel$setDriftIRF(order=0,nfex=length(drift))
+    ## Add drifts to model
+    .addDriftsToModel(EDmodel,polDrift,length(extDrift))
+    
     err = varioexp$compute(db,model=EDmodel)
+  }else{
+    err = varioexp$compute(db)
   }
   
   return(varioexp)
@@ -270,6 +275,8 @@ vario_map<-function(db,vname,gridRes=20,plot=T){
 #' Function to fit a model on an experimental variogram, a set of experimental (cross-)variograms or a variogram map.
 #'
 #' @param vario Experimental variogram(s) or variogram map (as a \pkg{gstlearn} object). See \emph{Details}.
+#' @param polDrift Integer specifying the order of the polynomial drift. 
+#' @param extDrift Name of the variable(s) specifying the external drift, stored as a (vector of) string(s).
 #' @param struct Vector containing the names of the desired basic structures. The list of available structures is obtained by calling the function \code{printAllStruct()}.
 #' @param pruneModel Whether or not to prune the model. See \emph{Details}.
 #' @param anisoModel Whether or not to fit an anistropic model.
@@ -280,6 +287,8 @@ vario_map<-function(db,vname,gridRes=20,plot=T){
 #' The fitting function first tries to fit a model containing all the structures specified in \code{struct}. if \code{pruneModel = TRUE},
 #' this model is pruned, i.e. the structures associated with negligible variances are discarded from the model, and a new fit is performed.
 #' These last two steps are repeated until no basic structures can be removed.
+#' 
+#' Note that fitting variogram maps using drifts is not supported yet.
 #'
 #' @return A \pkg{gstlearn} Model object containing the fitted model.
 #'
@@ -308,13 +317,17 @@ vario_map<-function(db,vname,gridRes=20,plot=T){
 #'            title="Model adjustment for Elevation")
 #'
 #'
-model_fit<-function(vario,drift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
+model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
   types = .checkStructNames(struct)
   model = Model()
   if(class(vario)=="_p_Vario"){
-    if (!is.null(drift)){
-      err = model$setDriftIRF(order=0,nfex=length(drift))}
+    
+    if (!is.null(extDrift) || !is.null(polDrift)){
+      ## Add drifts to model
+      .addDriftsToModel(model,polDrift,length(extDrift))
+    }
     err = model$fit(vario, types=types, optvar=Option_VarioFit(flag_noreduce=pruneModel,auth_aniso=anisoModel))
+  
   }else if(class(vario)=="_p_DbGrid"){
     vn=vario$getNames("VMAP.*.Var")[1]
     if(is.na(vn)){
@@ -784,6 +797,9 @@ model_getAnisoAngles<-function(model){
     }
   }
   if(nExtDrift>0){
+    if(is.null(polDrift)){
+      err = mdl$addDrift(DriftM())
+    }
     for(i in 0:(nExtDrift-1)){err=mdl$addDrift(DriftF(i))}
   }
 }

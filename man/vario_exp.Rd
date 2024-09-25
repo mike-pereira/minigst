@@ -7,7 +7,8 @@
 vario_exp(
   db,
   vname,
-  drift = NULL,
+  polDrift = NULL,
+  extDrift = NULL,
   dir = NULL,
   nlag = 20,
   dlag = 100,
@@ -19,6 +20,10 @@ vario_exp(
 \item{db}{Db object.}
 
 \item{vname}{Name(s) of the variable(s), stored as a (vector of) string(s).}
+
+\item{polDrift}{Integer specifying the order of the polynomial drift for universal kriging.}
+
+\item{extDrift}{Name of the variable(s) specifying the external drift, stored as a (vector of) string(s), for universal kriging with external drift.}
 
 \item{dir}{Direction used to compute the variogram. The default (\code{NULL}) reverts to an omnidirectional variogram. The directions can be specified either by a vector of angles in degrees (only in 2D and the value(s) denote the angle between the horizontal axis and the desired direction), or as a matrix whose rows contain direction vectors.}
 
@@ -44,6 +49,8 @@ are used to compute the correponding variogram value \eqn{gamma(h)}.
 The parameter \code{tolang} represents a tolerance on the angle and is expressed as an angle.
 For a given lag value \eqn{h} and a given angle \eqn{theta}, all the pairs with an angle between (\eqn{theta}-\code{tolang}) and (\eqn{theta}+\code{tolang})
 are used to compute the correponding variogram value \eqn{gamma(h)}.
+
+Finally, note that when adding external drifts, a constant drift (bias term) is automatically added as well.
 }
 \examples{
 library(minigst)

@@ -278,7 +278,6 @@ dbplot_grid<-function(dbGrid,color=NULL, contour=NULL, colValLimits=NULL,
 
 
 
-
 #------------------------------------------------------------
 
 
@@ -340,6 +339,21 @@ dbplot_grid<-function(dbGrid,color=NULL, contour=NULL, colValLimits=NULL,
   return(p)
 }
 
+
+.short_str <- function(str_vec,n=12) {
+  res=NULL
+  for (i in 1:length(str_vec)) {
+    str=str_vec[i]
+    nstr=nchar(str)
+    if(nstr>n){
+      ni=(n %/% 2) -1
+      res=c(res,paste0(substr(str,1,ni),"..",substr(str,nstr-ni,nstr)))
+    }else{
+      res=c(res,str)
+    }
+  }
+  return(res)
+}
 
 
 #' Plot experimental variograms and cross-variograms.
@@ -419,15 +433,18 @@ plot_vario<-function(expvario=NA,
     for(i in 1:nvar -1){
       for(j in 1:nvar -1){
         if(j<=i){
+          vnames=.short_str(expvario$getVariableNames())
           pl[[k]]=.plot_vario_base(expvario=expvario,model=model,ivar = i,jvar=j,idir=idir,
                              pairDisplay=pairDisplay, nlag = nlag, hmax = hmax, color=color,
-                             title =paste0("(",i,",",j,")"),
+                             # title =paste0("(",i,",",j,")"),
+                             title =paste0(vnames[i+1],"/",vnames[j+1]),
                              legend = F)
         }else{
           if((j==nvar-1)&&(i==0)&&legend){
             leg=get_legend(.plot_vario_base(expvario=expvario,model=model,ivar = i,jvar=j,idir=idir,
                                       pairDisplay=pairDisplay, nlag = nlag, hmax = hmax, color=color,
-                                      title =paste0("(",i,",",j,")"),
+                                      #title =paste0("(",i,",",j,")"),
+                                      title =paste0(vnames[i+1],"/",vnames[j+1]),
                                       legend = T))
             pl[[k]]=as_ggplot(leg)
           }else{

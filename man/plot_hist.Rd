@@ -25,4 +25,3 @@ A \pkg{ggplot2} object containing the plot. If stored in a variable, use the fun
 \description{
 Function to plot the histogram of a variable in a gstlearn db
 }
-

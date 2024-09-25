@@ -117,10 +117,10 @@ setMean <- function(model,mu){
 #' mod=createModel(struct=c("EXPONENTIAL", "NUGGET"), range = 0.3, sill = c(1,0.1), ndim=2, mean = 3)
 #'
 #' # Simulation
-#' rgrf(target=tgt, model=mod, nsim = 1, simname = "Mysim") 
+#' minirgrf(target=tgt, model=mod, nsim = 1, simname = "Mysim") 
 #' dbplot_grid(db=tgt,color="Mysim", cmap = "Spectral", title = "Simulation", colorLegendTitle= "Value")
 #' 
-rgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = NULL, dbcond = NULL, vcond = NULL){
+minirgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = NULL, dbcond = NULL, vcond = NULL){
   
   if(is.null(dbcond)){ # Unconditional simulations
     if (!is.null(simname)){

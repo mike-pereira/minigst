@@ -186,10 +186,10 @@ Let us plot our predictor and its standard deviation.
 ## Plot the results side by side
 par(mfrow=c(1,2)) #<- To create an array of plots
 # Plot of the kriging predictions using `quilt.plot` from the `fields` package
-bubblePlot(targetData$x, targetData$y, SKestim, asp=1,main="Simple kriging predictions")
+quilt.plot(targetData$x, targetData$y, SKestim, asp=1,main="Simple kriging predictions")
 points(obsData$x,obsData$y,pch=19,cex=0.25)
 # Plot of the kriging standard deviations using `quilt.plot` from the `fields` package
-bubblePlot(targetData$x, targetData$y, SKsd, asp=1,main="Simple kriging std-dev")
+quilt.plot(targetData$x, targetData$y, SKsd, asp=1,main="Simple kriging std-dev")
 points(obsData$x,obsData$y,pch=19,cex=0.25)
 par(mfrow=c(1,1)) #<- To revert to a single plot
 ```
@@ -433,12 +433,10 @@ ggarrange(p1,p2,nrow=1)
 colValLimits = c(-3,3)
 
 ## Plot of kriging predictions using unique neighborhood
-p1 = dbplot_grid(targetDb, color='OK.log_cadmium.estim',title='Unique Neigh. : Kriging predictions',
-                 colorLegendTitle = "",colValLimits = colValLimits)
+p1 = dbplot_grid(targetDb, color='OK.log_cadmium.estim',title='Unique Neigh. : Kriging predictions',colorLegendTitle = "",colValLimits = colValLimits)
 
 ## Plot of kriging predictions using unique moving neighborhood
-p2 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.estim',title='Mov. Neigh. : Kriging predictions',
-                 colorLegendTitle = "",colValLimits = colValLimits)
+p2 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.estim',title='Mov. Neigh. : Kriging predictions',colorLegendTitle = "",colValLimits = colValLimits)
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)

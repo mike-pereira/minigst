@@ -53,6 +53,8 @@
 #' 
 #' When specifying moving neighborhoods, the vector (nmin, nmax, radius) indicates the minimum and the maximum number of points in the neighborhood and the radius of the neighborhood.
 #' 
+#' Finally, note that when adding external drifts, a constant drift (bias term) is automatically added as well.
+#' 
 #' @return The function `minikriging` directly adds the kriging predictions (and if applicable, standard-deviations) to the Db in `dbout`. The names of these newly created variables will be of the form `prefix.vname.estim` for the predictions and  `prefix.vname.stdev` for the standard deviations.
 #' 
 #' The function `minixvalid` directly adds the kriging cross-validation errors (and if applicable, standard-deviations) to the Db in `dbin`. The names of these newly created variables will be of the form `prefix.vname.esterr` for the cross-vaidation errors and  `prefix.vname.stderr` for the standardardized errors
@@ -94,7 +96,35 @@ minikriging<-function (dbin, dbout, vname, model, type = "ordinary", polDrift = 
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
   
-  if (type == "simple"){
+  if (!is.null(extDrift) || !is.null(polDrift)){
+    ## Create a copy of the model without any drift and set the mean
+    mdl=Model(model)
+    err = mdl$delAllDrifts()
+    ## Add drifts to model
+    .addDriftsToModel(mdl,polDrift,length(extDrift))
+    
+    ## Set drifts in databases
+    setVar(dbin,extDrift,"Drift")
+    setVar(dbout,extDrift,"Drift")
+    
+    ## Delete previous kriging result
+    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
+    if(std){
+      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
+    }
+    ## Kriging
+    err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
+                  neigh=Neigh,
+                  flag_est=TRUE, flag_std=std, flag_varz=FALSE,
+                  namconv=NamingConvention(prefix)
+    )
+    ## Remove locators automatically assigned by the `kriging` function
+    Db_clearLocators(dbout,ELoc_Z())
+    Db_clearLocators(dbout,ELoc_F())
+    Db_clearLocators(dbin,ELoc_Z())
+    Db_clearLocators(dbin,ELoc_F())
+  } 
+  else if (type == "simple"){
     if (!is.numeric(mean)){stop('The mean is not properly specified for the simple kriging.')}
     
     ## Create a copy of the model without any drift and set the mean
@@ -140,36 +170,7 @@ minikriging<-function (dbin, dbout, vname, model, type = "ordinary", polDrift = 
     Db_clearLocators(dbout,ELoc_Z())
     Db_clearLocators(dbin,ELoc_Z())
     
-    }
-  else if (!is.null(extDrift) || !is.null(polDrift)){
-    
-    ## Create a copy of the model without any drift and set the mean
-    mdl=Model(model)
-    err = mdl$delAllDrifts()
-    ## Add drifts to model
-    .addDriftsToModel(mdl,polDrift,length(extDrift))
-    
-    ## Set drifts in databases
-    setVar(dbin,extDrift,"Drift")
-    setVar(dbout,extDrift,"Drift")
-    
-    ## Delete previous kriging result
-    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
-    if(std){
-      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
-    }
-    ## Kriging
-    err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
-                  neigh=Neigh,
-                  flag_est=TRUE, flag_std=std, flag_varz=FALSE,
-                  namconv=NamingConvention(prefix)
-    )
-    ## Remove locators automatically assigned by the `kriging` function
-    Db_clearLocators(dbout,ELoc_Z())
-    Db_clearLocators(dbout,ELoc_F())
-    Db_clearLocators(dbin,ELoc_Z())
-    Db_clearLocators(dbin,ELoc_F())
-  }
+    } 
   else {stop("The kriging type should be either simple ordinary, or universal (with a drift properly defined)")}
   
   return(invisible(NULL))
@@ -250,7 +251,32 @@ minixvalid<-function (dbin, vname, model, type = "ordinary", polDrift = NULL, ex
   setVar(dbin,vname)
   Neigh = .createneigh(neighborhood)
   
-  if (type == "simple"){
+  if (!is.null(extDrift) || !is.null(polDrift)){
+    ## Create a copy of the model without any drift and set the mean
+    mdl=Model(model)
+    err = mdl$delAllDrifts()
+    ## Add drifts to model
+    .addDriftsToModel(mdl,polDrift,length(extDrift))
+    
+    ## Set drifts in databases
+    setVar(dbin,extDrift,"Drift")
+    
+    ## Delete previous xvalid result
+    .deleteExistingVar(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
+    if(std){
+      .deleteExistingVar(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
+    }
+    ## xvalid
+    err = xvalid(dbin, model=mdl, 
+                 neigh=Neigh,
+                 flag_xvalid_est=TRUE, flag_xvalid_std=std,
+                 namconv=NamingConvention(prefix)
+    )
+    ## Remove locators automatically assigned by the `xvalid` function
+    Db_clearLocators(dbin,ELoc_Z())
+    Db_clearLocators(dbin,ELoc_F())
+  }
+  else if (type == "simple"){
     if (!is.numeric(mean)){stop('The mean is not properly specified for the simple xvalid.')}
     
     ## Create a copy of the model without any drift and set the mean
@@ -294,32 +320,6 @@ minixvalid<-function (dbin, vname, model, type = "ordinary", polDrift = NULL, ex
     ## Remove locators automatically assigned by the `xvalid` function
     Db_clearLocators(dbin,ELoc_Z())
     
-  }
-  else if (!is.null(drift) || !is.null(polDrift)){
-    
-    ## Create a copy of the model without any drift and set the mean
-    mdl=Model(model)
-    err = mdl$delAllDrifts()
-    ## Add drifts to model
-    .addDriftsToModel(mdl,polDrift,length(extDrift))
-    
-    ## Set drifts in databases
-    setVar(dbin,extDrift,"Drift")
-
-    ## Delete previous xvalid result
-    .deleteExistingVar(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
-    if(std){
-      .deleteExistingVar(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
-    }
-    ## xvalid
-    err = xvalid(dbin, model=mdl, 
-                  neigh=Neigh,
-                  flag_xvalid_est=TRUE, flag_xvalid_std=std,
-                  namconv=NamingConvention(prefix)
-    )
-    ## Remove locators automatically assigned by the `xvalid` function
-    Db_clearLocators(dbin,ELoc_Z())
-    Db_clearLocators(dbin,ELoc_F())
   }
   else {stop("The xvalid type should be either simple ordinary, or universal (with a drift properly defined)")}
   

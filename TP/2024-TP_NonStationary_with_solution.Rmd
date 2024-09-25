@@ -6,11 +6,9 @@ output:
     pdf_document:
         number_sections: true
         toc: true
+editor_options: 
+  chunk_output_type: console
 ---
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,eval = FALSE)
-```
 
 
 This practical requires all questions from the last two practicals (on variography and kriging) to be answered. The database is the same, and focus is on the logarithm of the cadimum.
@@ -21,16 +19,10 @@ This practical requires all questions from the last two practicals (on variograp
 rm(list=ls()) #Clean the working directory
 
 library(minigst)
-```
-
-# Preamble
-
-# Preamble
-
-
-```{r loading_gstlearn}
 OptCst_defineByKey("ASP",0)
+
 ```
+
 
 
 ## Loading the Meuse dataset
@@ -55,7 +47,6 @@ var_name = c( "cadmium", "copper", "lead", "zinc")
 addVarToDb(data,var=log(meuse[,var_name]),vname = paste0("log_",var_name))
 
 # Plot the data
-
 dbplot_point(data,size="log_cadmium",sizeRange = c(0.1,3), pointColor = "red",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Log Cadmium")
 
@@ -66,82 +57,112 @@ Create the target (grid) Db
 ```{r create the target (grid dB)}
 target = dfToDbGrid(meuse.grid,coordnames = c('x','y'))
 
-# Plot the distance covariate (see universal kriging)
-
+# Plot the distance to river in the target Db
 dbplot_grid(target, color='dist.m',title='Distance to the river')
 ```
 
-# Universal Kriging
+# Universal Kriging with gstlearn
 
-## Variography and non-stationnarity
+## Model fitting: Variography and non-stationnarity
 
-To work with universal kriging or kriging with external drift, it suffices to call `minikriging` (to compute predictions) or `xvalid` (to perform cross-validation) with  drift functions. The variogram model should be fitted on a experimental variogram computed with the residuals where the trend has been filtered out. 
+As usual, we start by fitting a model on our data (which are in the Db `data`). Since we wish to perform universal kriging, our variable of interest $Z(x)$ is modeled at any location $x$ as follows
+$$ Z(x) = X(x)\beta + R(x) = \sum_{i=1}^p \beta_iX_i(x) +R(x)$$
+where $X(x) = (X_1(x),...,X_p(x))$ is a row-vector containing the values of the $p$ drift functions at the location $x$, and $R$ is a zero-mean spatially correlated field of residuals. Universal kriging then consists on finding optimal weights to predict the value of $Z$ at a location $x_0$ using a weighted sum of observations $Z(x_1),...,Z(x_n)$, and given that the vector of coefficients $\beta$ is unknown.
 
-1. Compute an experimental variogram without then with drift `addDrift()`, compare them. What do you see ?
+Note that by optimal we mean that resulting predictor is unbiased, and has a minimal prediction error given some model on the covariance of the residuals $R$. Hence, in essence, universal kriging is just a generalization of ordinary kriging, but with a non-stationary mean defined by drift functions.
 
-```{r}
-# experimental variogram on raw data
-varioexp_aniso = vario_exp(data,vname="log_cadmium",dir=c(0,45,90,135),nlag=20, dlag=100.)
+In this section, we will apply universal kriging to predict the value of the log-concentration of Cadmium (Variable `log_cadmium`) using the distance to the river (Variable `dist.m`) as a drift function. 
 
-# plot of the experimental variogram 
-p1 = plot_vario(varioexp_aniso, pairDisplay = "size", title="Experimental variogram on raw data")
 
-# experimental variogram on residuals
-varioexp_aniso_drift = vario_exp(data,vname="log_cadmium",drift = 'dist.m',dir=c(0,45,90,135),nlag=20, dlag=100.)
-p2 = plot_vario(varioexp_aniso_drift, pairDisplay = "size", title="Experimental variogram on residuals")
+The first step of applying universal kriging is to estimate the covariance model of the residuals. This can be done using an experimental variogram of the residuals which can be computed using once again the function `vario_exp` but now specifying the argument `extDrift` to be the name(s) of the variable(s) we wish to use as drift(s). Note that when specifying an external drift, 
 
+1. Compute an experimental variogram of the raw observations of `log_cadmium`, and then an experimental variogram of the residuals of `log_cadmium` when the distance to the river (`dist.m`) is used as a drift. Compare the resulting plots.
+
+```{r, warning=FALSE}
+# Experimental variogram on raw data: Use a omnidirectional with 40 lags of length 50
+varioexp_raw = vario_exp(data,vname="log_cadmium",nlag=40, dlag=50)
+
+# Experimental variogram on residuals with the same parameters
+varioexp_res = vario_exp(data,vname="log_cadmium",
+                                 extDrift = 'dist.m',nlag=40, dlag=50)
+```
+
+
+```{r, warning=FALSE}
+# Side-by-side plots of the experimental variograms
+p1 = plot_vario(varioexp_raw, pairDisplay = "size", title="Experimental variogram on raw data")
+p2 = plot_vario(varioexp_res,  pairDisplay = "size",title="Experimental variogram on residuals")
 ggarrange(p1, p2, ncol = 2, nrow = 1,legend = "bottom",common.legend = TRUE)
 ```
 
-2. Fit a model to the residuals (discard the anisotropy)
+When performing universal kriging, we need to fit a model on the residuals
+
+2. Fit a model composed of a nugget effect and an exponential covariance to the experimental variogram of the residuals (discard the anisotropy)
 
 ```{r}
-varioexp_drift = vario_exp(data,vname="log_cadmium",drift = 'dist.m',nlag=20, dlag=100.)
-
-# fitting the model
+# Fitting the model
 struct_names=c("NUGGET","EXPONENTIAL")
-model_drift=model_fit(varioexp_drift,drift = 'dist.m',struct=struct_names)
+model_drift=model_fit(varioexp_res,extDrift = 'dist.m',struct=struct_names)
+
+```
+
+```{r}
 # display of the model
 model_drift$display() 
 
 # plot of the experimental variogram and the fitted model
-plot_vario(varioexp_drift,model = model_drift,pairDisplay = "size",
+plot_vario(varioexp_res,model = model_drift,pairDisplay = "size",
            title="Model adjustment for cadmium residuals")
 
 ```
 
 ## Universal Kriging
 
-3. Compute and plot the universal kriging (UK) using the variogram fitted on the residuals.
+To work with universal kriging or kriging with external drift, it suffices to call `minikriging` (to compute predictions) or `minixvalid` (to perform cross-validation) with  drift functions. Polynomial drift functions are specified by the argument `polDrift` argument, and external drift variables are specified by the argument `extDrift` argument. See the help of the function `minikriging` for more details.
+
+3. Compute and plot the universal kriging predictions (and standard-deviations) on the target grid of the variable `log_cadmium` using the variable `dist.m` as a drift and the model fitted on the residuals. Use the Dbgrid `target` as target locations.
 
 ```{r}
+## Perform universal kriging with a unique neighborhood, and use "UK" as a prefix
+minikriging(data, target, vname = "log_cadmium", extDrift ='dist.m', 
+            model = model_drift, prefix = "UK", neighborhood = "unique", std = TRUE)
+```
 
-minikriging(data, target, vname = "log_cadmium", extDrift ='dist.m', model = model_drift, type = "universal", prefix = "UK", neighborhood = "unique", std = TRUE)
-
+```{r}
 ## Plot kriging estimate
-dbplot_grid(target, color='UK.log_cadmium.estim',title='Predicted log cadmium concentration')
-
+p1=dbplot_grid(target, color='UK.log_cadmium.estim',title='Universal Kriging: Pred.',colorLegendTitle = "Value")
 ## Plot kriging stdev
-dbplot_grid(target, color='UK.log_cadmium.stdev',title='log cadmium prediction standard deviation')
+p2=dbplot_grid(target, color='UK.log_cadmium.stdev',title='Universal Kriging: Std-Dev',colorLegendTitle = "Value")
+## Side by side plot
+ggarrange(p1,p2,nrow = 1)
 
 ```
 
 ## Cross-validation
 
+We can perform cross-validation as demonstrated in the "Kriging" practical session, using the function `minixvalid` with the same arguments as the `minikriging` function (except for the the target Db).
+
+4. Perform a cross-validation analysis on the universal kriging prediction defined in 3.
+
 ```{r}
-## Cross-validation for universal kriging
+## Cross-validation for universal kriging: Set the prefix
+minixvalid(data, vname = "log_cadmium",  
+                 model=model_drift, neighborhood = "unique", std = TRUE,prefix="Xvalid_UK")
+```
 
-err = xvalidation(data, vname = "log_cadmium", drift ='dist.m', model=model_drift, type = "universal",prefix ="UK", neighborhood = "unique", std = TRUE)
+Print plot the results of the cross-validation.
 
-plot_hist(data,vname="*esterr*",nbin=30,color="blue",xlab="Estimation Errors", title="Cross-Validation")
+```{r}
+## Plot histogram of cross-validation errors
+xvalid_name="Xvalid_UK.log_cadmium.esterr"
+plot_hist(data,vname=xvalid_name,nbin=30,color="blue",xlab="Estimation Errors", title="Cross-Validation")
 
 ## Print some statistics about the cross-validation errors
-print(c("Mean cross-validation error:",mean(data[,"*esterr*"], na.rm=TRUE)))
-print(c("Mean squared cross-validation error:",mean(data[,"*esterr*"]^2, na.rm=TRUE)))
-print(c("Mean squared standardized error:",mean(data[,"*stderr*"]^2, na.rm=TRUE)))
+print(c("Mean cross-validation error:",mean(data[,xvalid_name], na.rm=TRUE)))
+print(c("Mean squared cross-validation error:",mean(data[,xvalid_name]^2, na.rm=TRUE)))
 
-dbplot_grid(target,color = "UK*estim")
-dbplot_point(data,size = "*UK.log_cadmium.esterr", add=T)
+p=dbplot_grid(target,color = "UK.log_cadmium.estim")
+dbplot_point(data,size = xvalid_name, add=p)
 
 ```
 
@@ -149,12 +170,45 @@ dbplot_point(data,size = "*UK.log_cadmium.esterr", add=T)
 
 ## Comparison and interpretation
 
-4. Compare ordinary kriging and universal kriging with `correlation()`. Interprete.
+5. Compute an ordinary kriging prediction of `log_cadmium` (with a model fitted on the raw observations). Compare the results to the universal predictions using a cross-plot (-> `plot_scatter`), and by performing a cross-validation analysis on the ordinary kriging results and comparing the results to the ones obtained in 4.
 
 ```{r}
+## Fit a model on the experimental variogram of the raw observations
+model_raw = model_fit(varioexp_raw,struct=struct_names)
 
+## Perform ordinary kriging with a unique neighborhood, and use "OK" as a prefix
+minikriging(data, target, vname = "log_cadmium", type="ordinary",
+            model = model_raw, prefix = "OK", neighborhood = "unique", std = TRUE)
 
 ```
+
+```{r}
+## Scatter plot Simple Kriging VS Ordinary Kriging: Predictions
+plot_scatter(target,vnamex="OK.log_cadmium.estim",vnamey="UK.log_cadmium.estim",
+              title="Kriging predictions: Ordinary vs, Universal", xlab="Ordinary Kriging", ylab="Universal Kriging",
+             eqLine = TRUE)
+```
+```{r}
+## Perform cross-validation analysis on the ordinary kriging predictor (use the prefix "Xvalid_OK")
+minixvalid(data,vname = "log_cadmium", type="ordinary",
+            model = model_raw, prefix = "Xvalid_OK", neighborhood = "unique", std = TRUE)
+```
+
+
+```{r}
+## Plot histogram of cross-validation errors
+xvalid_name="Xvalid_OK.log_cadmium.esterr"
+plot_hist(data,vname=xvalid_name,nbin=30,color="blue",xlab="Estimation Errors", title="Cross-Validation")
+
+## Print some statistics about the cross-validation errors
+print(c("Mean cross-validation error:",mean(data[,xvalid_name], na.rm=TRUE)))
+print(c("Mean squared cross-validation error:",mean(data[,xvalid_name]^2, na.rm=TRUE)))
+
+p=dbplot_grid(target,color = "OK.log_cadmium.estim")
+dbplot_point(data,size = xvalid_name, add=p)
+```
+
+
 
 ## Adding other explanatory variables
 
@@ -162,14 +216,17 @@ We will try here to add *soil* and *ffreq*. Since those are categorical variable
 
 
 ```{r}
-require(mltools)
-require(data.table)
-newdata <- one_hot(as.data.table(meuse[,c("soil","ffreq")]))
-meuse <- cbind(meuse,as.data.frame(newdata)[,-c(3,6)])
+## Extract the categorical variables (stored as factors)
+meuse_cat = meuse[,c("soil","ffreq")]
 
-newdata <- one_hot(as.data.table(meuse.grid[,c("soil","ffreq")]))
-meuse.grid <- cbind(meuse.grid,as.data.frame(newdata)[,-c(3,6)])
+##' Create a new data frame containing the one-hot encoding of the variables `soil` and `ffreq`
+##' The function model.matrix creates the one-hot encoding of variables specified (through a "formula") in the first arguments.
+##'  Note that if a variable has n categories, then n-1 variables are created, and that the first column contains only ones and is automatically added by the function.
+df_one_hot=data.frame(model.matrix(~soil+ffreq,data=meuse_cat))
+df_one_hot=df_one_hot[,-1] # Remove the first column which is not part of the encoding
 
+## Add the encoded variables to the `meuse` dataframe
+meuse <- cbind(meuse,df_one_hot)
 
 ```
 

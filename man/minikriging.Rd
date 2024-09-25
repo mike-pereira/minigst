@@ -18,6 +18,7 @@ minikriging(
   std = TRUE,
   prefix = "K"
 )
+
 minixvalid(
   dbin,
   vname,
@@ -30,7 +31,6 @@ minixvalid(
   std = TRUE,
   prefix = "Xvalid"
 )
-
 }
 \arguments{
 \item{dbin}{Db object containing the data points.}
@@ -71,6 +71,8 @@ The cross-validation error at x_i is then defined as the difference between this
 And the standardized cross-validation error at x_i is defined as the ratio between the cross-validation error at x_i  and the kriging standard-deviation at x_i. 
 
 When specifying moving neighborhoods, the vector (nmin, nmax, radius) indicates the minimum and the maximum number of points in the neighborhood and the radius of the neighborhood.
+
+Finally, note that when adding external drifts, a constant drift (bias term) is automatically added as well.
 }
 \examples{
 library(minigst)

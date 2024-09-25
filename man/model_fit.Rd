@@ -6,7 +6,8 @@
 \usage{
 model_fit(
   vario,
-  drift = NULL,
+  polDrift = NULL,
+  extDrift = NULL,
   struct = "SPHERICAL",
   pruneModel = TRUE,
   anisoModel = TRUE
@@ -14,6 +15,10 @@ model_fit(
 }
 \arguments{
 \item{vario}{Experimental variogram(s) or variogram map (as a \pkg{gstlearn} object). See \emph{Details}.}
+
+\item{polDrift}{Integer specifying the order of the polynomial drift.}
+
+\item{extDrift}{Name of the variable(s) specifying the external drift, stored as a (vector of) string(s).}
 
 \item{struct}{Vector containing the names of the desired basic structures. The list of available structures is obtained by calling the function \code{printAllStruct()}.}
 
@@ -34,6 +39,8 @@ or as the output of the \code{vario_map} function (for variogram maps).
 The fitting function first tries to fit a model containing all the structures specified in \code{struct}. if \code{pruneModel = TRUE},
 this model is pruned, i.e. the structures associated with negligible variances are discarded from the model, and a new fit is performed.
 These last two steps are repeated until no basic structures can be removed.
+
+Note that fitting variogram maps using drifts is not supported yet.
 }
 \examples{
 library(minigst)

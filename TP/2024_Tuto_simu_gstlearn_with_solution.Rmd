@@ -11,7 +11,7 @@
   chunk_output_type: inline
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
@@ -70,9 +70,9 @@ Generate samples from the model fitted on the observations, simulating with a si
 ```{r uncond_simu}
 
 # Simulations
-rgrf(target, model, 1, ntuba = 1, simname = "Sim1")
-rgrf(target, model, 1, ntuba = 10, simname = "Sim10")
-rgrf(target, model, 1, ntuba = 1000, simname = "Sim1000")
+minirgrf(target, model, 1, ntuba = 1, simname = "Sim1")
+minirgrf(target, model, 1, ntuba = 10, simname = "Sim10")
+minirgrf(target, model, 1, ntuba = 1000, simname = "Sim1000")
 
 # Plots
 dbplot_grid(db=target,color="Sim1", cmap = "Spectral", title = "Simulation with 1 band", colorLegendTitle= "Value")
@@ -100,7 +100,7 @@ setMean(model, kriging_mean(dat,"January_temp",model))
 ```{r cond_simu}
 
 # Simulations
-rgrf(target, model, nsim = 10, ntuba = 1000, dbcond = dat, vcond = "January_temp", seed = 13231)
+minirgrf(target, model, nsim = 10, ntuba = 1000, dbcond = dat, vcond = "January_temp", seed = 13231)
 
 # Plots
 for (i in 1:10){
