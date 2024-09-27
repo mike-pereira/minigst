@@ -6,9 +6,6 @@
   pdf_document:
   number_sections: yes
   toc: yes
-  editor_options: 
-    chunk_output_type: console
-  chunk_output_type: inline
 ---
 
 ```{r setup}
@@ -16,8 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 
 library(minigst)
-# source("./TP/vario.R")
-# source("./TP/dbplot.R")
 ```
 
 #Preamble
@@ -75,9 +70,9 @@ minirgrf(target, model, 1, ntuba = 10, simname = "Sim10")
 minirgrf(target, model, 1, ntuba = 1000, simname = "Sim1000")
 
 # Plots
-dbplot_grid(db=target,color="Sim1", cmap = "Spectral", title = "Simulation with 1 band", colorLegendTitle= "Value")
-dbplot_grid(db=target,color="Sim10", cmap = "Spectral", title = "Simulation with 10 bands", colorLegendTitle= "Value")
-dbplot_grid(db=target,color="Sim1000", cmap = "Spectral", title = "Simulation with 1000 bands", colorLegendTitle= "Value")
+dbplot_grid(db=target,color="Sim1", cmap = "Spectral", title = "Simulation with 1 band", legendTitle= "Value")
+dbplot_grid(db=target,color="Sim10", cmap = "Spectral", title = "Simulation with 10 bands", legendTitle= "Value")
+dbplot_grid(db=target,color="Sim1000", cmap = "Spectral", title = "Simulation with 1000 bands", legendTitle= "Value")
 ```
 
 # Conditional simulations
@@ -104,8 +99,8 @@ minirgrf(target, model, nsim = 10, ntuba = 1000, dbcond = dat, vcond = "January_
 
 # Plots
 for (i in 1:10){
-  p = dbplot_grid(db=target,color=paste0("Simu.January_temp.",i), cmap = "Spectral", colorLegendTitle= "Value")
-  p = dbplot_point(db=dat, flagCst = T, pch=18, cex=1.5, add = p, title = paste0("Conditional Simulation ", i))
+  p = dbplot_grid(db=target,color=paste0("Simu.January_temp.",i), cmap = "Spectral", legendTitle= "Value", title = paste0("Conditional Simulation ", i))
+  p=addPoints(p,dat["x1"],dat["x2"], shape=18, size=1.5)
   print(p)
 }
 ```
@@ -122,5 +117,5 @@ binvar = target["Simu.January_temp*"] > 2
 addVarToDb(target, apply(binvar,1,mean), "Prob")
 
 # Plot the results
-dbplot_grid(db=target,color="Prob", title = "Probability for temperature above 2°C", colorLegendTitle= "Value")
+dbplot_grid(db=target,color="Prob", title = "Probability for temperature above 2°C", legendTitle= "Value")
 ```

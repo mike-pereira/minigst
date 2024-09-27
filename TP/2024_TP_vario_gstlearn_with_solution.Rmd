@@ -6,15 +6,11 @@
   pdf_document:
   number_sections: yes
   toc: yes
-  editor_options: 
-    chunk_output_type: console
-  chunk_output_type: inline
 ---
 
-```{r setup, include=FALSE}
+```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
-
 library(minigst)
 
 ```
@@ -83,7 +79,6 @@ dbplot_point(data,size="log_zinc",sizeRange = c(0.1,3), pointColor = "darkgreen"
 
 # Statistics on the variables
 print(summaryStats(data,vname = c("cadmium","copper","lead","zinc")))
-#RMQ Emilie : pourquoi le print ? Il n'est pas nécessaire il me semble. Par ailleurs, comme meuse existe toujours (elle a été copiée dans data), on peut techniquement aussi faire un bête summary(meuse).
 
 # Statistics on the log-variables
 print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc"))))
@@ -345,7 +340,6 @@ We now plot the experimental variogram. In the resulting figure, the experimenta
 
 plot_vario(varioexp,pairDisplay = "size")
 
-
 ```
 
 We can also adapt the size of experimental variogram points in the plot so that it is proportional to the number of pairs of points used to compute the value.
@@ -372,7 +366,6 @@ for (ilag in seq(lag_vario)) {
   print(plt)
 
 }
-
 
 ```
 

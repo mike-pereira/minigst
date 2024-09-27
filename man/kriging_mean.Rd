@@ -19,9 +19,6 @@ The function returns a numeric value giving the kriging mean of the variable of 
 \description{
 Function that calculates the kriging mean of a variable in a database.
 }
-\details{
-...
-}
 \examples{
 library(minigst)
 

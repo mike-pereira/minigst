@@ -6,8 +6,6 @@
 #' @param db Db object containing the observations.
 #' @param vname Name of the variable of interest.
 #' @param model Model object giving the covariance/variogram model of the data.
-
-#' @details ...
 #'
 #' @return The function returns a numeric value giving the kriging mean of the variable of interest.
 #'
@@ -124,10 +122,33 @@ minirgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = 
   
   if(is.null(dbcond)){ # Unconditional simulations
     if (!is.null(simname)){
+      if(nsim==1){
+        sim_names=simname
+      }else{
+        sim_names=paste0(simname,".",1:nsim)
+      }
+      .deleteExistingVar(target,sim_names)
       err = simtub(dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, seed=seed, namconv=NamingConvention(simname))
     }else{
-      err = simtub(dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, seed = seed)
+      if(nsim==1){
+        sim_names="Simu"
+      }else{
+        sim_names=paste0("Simu",".",1:nsim)
+      }
+      .deleteExistingVar(target,sim_names)
+      err = simtub(dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, seed = seed, namconv=NamingConvention("Simu"))
     }
+    
+    selnames=target$getNamesByLocator(ELoc_SEL())
+    if(length(selnames)>0){
+      selvec=apply(as.matrix(target[selnames]),1,prod)
+      selvec[selvec==0]=NA
+      target[sim_names]=target[sim_names]*selvec
+    }
+    
+    ## Remove locators automatically assigned by the `minigrf` function
+    Db_clearLocators(target,ELoc_Z())
+    
   }else{ # Conditional simulations
     
     if(length(intersect(colnames(dbcond[]),vcond))==0){
@@ -138,12 +159,35 @@ minirgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = 
     defineDefaultSpace(ESpaceType_RN(), ndim = target$getNDim())
     
     if (!is.null(simname)){
+      if(nsim==1){
+        sim_names=paste0(simname,".",vcond)
+      }else{
+        sim_names=paste0(simname,".",vcond,".",1:nsim)
+      }
+      .deleteExistingVar(target,sim_names)
       err = simtub(dbin = dbcond, dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, neigh = neighU, seed=seed, namconv=NamingConvention(simname))
     }else{
+      if(nsim==1){
+        sim_names=paste0("Simu",".",vcond)
+      }else{
+        sim_names=paste0("Simu",".",vcond,".",1:nsim)
+      }
+      .deleteExistingVar(target,sim_names)
       err = simtub(dbin = dbcond, dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, neigh = neighU, seed = seed)
     }
     
+    selnames=target$getNamesByLocator(ELoc_SEL())
+    if(length(selnames)>0){
+      selvec=apply(as.matrix(target[selnames]),1,prod)
+      selvec[selvec==0]=NA
+      target[sim_names]=target[sim_names]*selvec
+    }
+    ## Remove locators automatically assigned by the `minigrf` function
+    Db_clearLocators(dbcond,ELoc_Z())
+    Db_clearLocators(target,ELoc_Z())
+    
   }
+
   
   return(invisible(NULL))
 }

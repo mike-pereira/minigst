@@ -4,7 +4,7 @@
 \alias{getSeq}
 \title{Function to create breaks (used to plot size legend in `dbplot_point`)}
 \usage{
-getSeq(v, n, nd = 3)
+getSeq(v, n = 4, nd = 3)
 }
 \description{
 Function to create breaks (used to plot size legend in `dbplot_point`)

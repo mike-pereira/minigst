@@ -122,7 +122,7 @@
 #' Function to create breaks (used to plot size legend in `dbplot_point`)
 #' @keywords internal
 #' 
-getSeq<-function(v,n,nd=3){
+getSeq<-function(v,n=4,nd=3){
   u=floor(seq(from=floor(v[1]*10**nd),to=ceiling(v[2]*10**nd),length.out=n))/10**nd
   u=pretty(v,n)
   return(u)
@@ -204,6 +204,9 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
                        hideLegend=FALSE, legendTitle=NA,
                         xlab = NULL, ylab = NULL, title = NULL, add = FALSE){
   
+
+  .checkVariableNames(db,c(color,cat_color,size))
+  
   if(is.logical(add)){
     if(add){
       p = last_plot()
@@ -274,11 +277,15 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
       valSize=df[,size]
     }
     p = p+new_scale("size")
-    breaks=getSeq(range(valSize,na.rm=TRUE),5)
+    breaks=getSeq(range(valSize,na.rm=TRUE))
     p =p + scale_size(breaks = breaks,limits=range(breaks),range = sizeRange,name=name)
   }
   
-  p=p+geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
+  if(is.null(color)&&is.null(cat_color)){
+    p=p+geom_point(data=df,aes_plt,color=pointColor,show.legend=ifelse(hideLegend,FALSE,NA))
+  }else{
+    p=p+geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
+  }
   
   return(p)
 }
@@ -429,6 +436,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   if((!is.null(color))+(!is.null(cat_color))+(!is.null(contour))>1){
     stop("You must specify only one of the following arguments: color, cat_color, contour")
   }
+  .checkVariableNames(db,c(color,cat_color,contour))
   
   if(is.logical(add)){
     if(add){
@@ -557,13 +565,13 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
 
   p=ggplot()
   if(is.null(color)){
-    p=p+plot.varmod(vario=expvario,model=model,nh=nlag,hmax=hmax,drawPsize = drawPsize,
+    p=p+suppressWarnings(plot.varmod(vario=expvario,model=model,nh=nlag,hmax=hmax,drawPsize = drawPsize,
                     ivar=ivar, jvar=jvar, idir=idir,
-                    drawPlabel = drawPlabel,flagLegend = legend,flagEnvelop = F,...)
+                    drawPlabel = drawPlabel,flagLegend = legend,flagEnvelop = F,...))
   }else{
-    p=p+plot.varmod(vario=expvario,model=model,nh=nlag,hmax=hmax,drawPsize = drawPsize,
+    p=p+suppressWarnings(plot.varmod(vario=expvario,model=model,nh=nlag,hmax=hmax,drawPsize = drawPsize,
                     ivar=ivar, jvar=jvar, idir=idir,
-                    drawPlabel = drawPlabel,flagLegend = legend,flagEnvelop = F,color=color,...)
+                    drawPlabel = drawPlabel,flagLegend = legend,flagEnvelop = F,color=color,...))
   }
 
   p=p+plot.decoration(xlab = "Distance", ylab="Variogram",

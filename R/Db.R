@@ -547,9 +547,27 @@ summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
 #'Function to delete variable which already exists in a Db
 #'
 .deleteExistingVar<-function(db,vname){
-  if(vname %in% colnames(db[])){
-    db$deleteColumns(names = vname)
+  for(v in vname){
+    if(v %in% colnames(db[])){
+      db$deleteColumns(names = v)
+    }
   }
   return(invisible(NULL))
 }
+
+
+
+
+#'
+#'Function to delete variable which already exists in a Db
+#'
+.checkVariableNames<-function(db,vname){
+  for(v in vname){
+    if(!(v %in% colnames(db[]))){
+      stop("The variable '",v,"' is absent from the Db. Please check the name.")
+    }
+  }
+  return(invisible(NULL))
+}
+
 
