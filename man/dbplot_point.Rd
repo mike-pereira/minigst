@@ -7,50 +7,44 @@
 dbplot_point(
   db,
   color = NULL,
+  cat_color = NULL,
   size = NULL,
-  label = NULL,
-  sizeRange = c(1, 5),
-  absSize = FALSE,
-  sizeLegendTitle = NULL,
   cmap = NULL,
-  discreteVal = FALSE,
-  colorLegendTitle = NULL,
-  labelColor = "black",
+  colValLimits = NULL,
+  naColor = "transparent",
   pointColor = "black",
-  labelLegendTitle = NULL,
+  sizeRange = c(0.5, 3),
+  absSize = FALSE,
+  hideLegend = FALSE,
+  legendTitle = NA,
   xlab = NULL,
   ylab = NULL,
   title = NULL,
-  add = FALSE,
-  ...
+  add = FALSE
 )
 }
 \arguments{
 \item{db}{Db object.}
 
-\item{color}{Name of the variable defining the color of the points.}
+\item{color, cat_color}{Name of the variable defining the color of the points: use `color` for continuous variables and `cat_color` for categorical variables.}
 
 \item{size}{Name of the variable defining the size of the points.}
 
-\item{label}{Name of the variable defining the labels of the points.}
+\item{cmap}{Color map used to plot the points by color. Can be specified by a name (cf. \code{\link{printAllPalettes}} to display available choices), or by a vector of color names which will be interpolated to create a palette.}
+
+\item{colValLimits}{Range of values for teh color mapping.}
+
+\item{naColor}{Color used for NA values.}
+
+\item{pointColor}{Default color of points when \code{color} is not specified.}
 
 \item{sizeRange}{Vector specifying the range of sizes when plotting the points by size.}
 
 \item{absSize}{Whether the absolute value of the variable should be used to define the size of the points.}
 
-\item{sizeLegendTitle}{Title of the size legend.}
+\item{hideLegend}{Whether to hide the legend.}
 
-\item{cmap}{Color map used to plot the points by color. Can be specified by a name (cf. \code{\link{printAllPalettes}} to display vailable choices), or by a vector of color names which will be interpolated to create a palette.}
-
-\item{discreteVal}{Whether the variable defining the color is discrete or not.}
-
-\item{colorLegendTitle}{Title of the color legend.}
-
-\item{labelColor}{Name of the color used to write labels.}
-
-\item{pointColor}{Default color of points when \code{color} is not specified.}
-
-\item{labelLegendTitle}{Title of the label legend.}
+\item{legendTitle}{Title(s) of the legend: either a single string if just the color or the size if plotted, or a vector containing respectively the title of the color legende and the title of the size legend. Setting the legend title to `NA` means that the name of the variable is used as a title.}
 
 \item{xlab}{Title of the x-axis.}
 
@@ -59,8 +53,6 @@ dbplot_point(
 \item{title}{Title of plot.}
 
 \item{add}{Either a boolean or \pkg{ggplot2} object. If \code{FALSE} (Default), then a new plot is created. If \code{TRUE}, then the points are added to the last plot (see \pkg{ggplot2::last_plot()}) specifying if the points are to be added to the last plot or not}
-
-\item{...}{Additional arguments passed to the \pkg{ggplot2} functions \code{geom_point} and \code{geom_text}.}
 }
 \value{
 A \pkg{ggplot2} object containing the plot. If stored in a variable, use the function \code{print} to display the plot.
@@ -68,6 +60,9 @@ A \pkg{ggplot2} object containing the plot. If stored in a variable, use the fun
 \description{
 Function to plot variables in a Db object as isolated points. The value of the variables are used to define
 the color, size and/or labels of the points.
+}
+\details{
+Note that you can specify only one of the arguments `color` and `cat_color`,but you can specify it jointly with the `size` argument.
 }
 \examples{
 library(minigst)

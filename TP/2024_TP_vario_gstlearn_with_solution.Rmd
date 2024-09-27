@@ -319,8 +319,12 @@ The data is modelled as *samples of a regionalized* variable $z$, i.e. as evalua
 The variogram cloud is the set of pair of points defined as $$ \big\lbrace \big( \Vert x_i - x_j\Vert,  \frac{1}{2}\big\vert z(x_i)-z(x_j)\big\vert^2 \big) \quad\text{where}\quad 1\le i\le j\le n \big\rbrace $$
 
 ```{r Variogram_Cloud}
-grid.cloud = vario_cloud(data,vname = "log_cadmium",plot=TRUE)
-grid.cloud
+## Create variogram cloud
+grid.cloud = vario_cloud(data,vname = "log_cadmium")
+grid.cloud$display()
+
+## Plot variogram cloud
+dbplot_grid(grid.cloud,color="Cloud.log_cadmium",legendTitle="Nb of pairs")
 
 ```
 
@@ -381,7 +385,21 @@ The experimental variogram map is a map centred at the origin, which represents 
 To compute an experimental variogram map, we use the function `db_vmap_compute` which we supply with the `Db` containing the data. The output is a `Db` containing a grid representing the variogram map values.
 
 ```{r Variogram_Map}
-grid.vmap = vario_map(data, vname="log_cadmium",plot=TRUE)
+grid.vmap = vario_map(data, vname="log_cadmium")
+
+vname="log_cadmium"
+
+vn1=grid.vmap$getNames("VMAP.*.Var")[1]
+p1=dbplot_grid(grid.vmap,color= vn1,cmap="Spectral",
+               legendTitle ="Var",
+               title = paste0("Variogram map : ",vname))
+
+vn2=grid.vmap$getNames("VMAP.*.Nb")[1]
+p2=dbplot_grid(grid.vmap,color=vn2,cmap="RdBu",
+               legendTitle ="Nb",
+               title = "Number of pairs")
+
+print(ggarrange(p1,p2,nrow=1,ncol=2, common.legend = FALSE))
 
 ```
 

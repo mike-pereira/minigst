@@ -5,37 +5,39 @@
 \title{Plot variables in a Db}
 \usage{
 dbplot_grid(
-  dbGrid,
+  db,
   color = NULL,
+  cat_color = NULL,
   contour = NULL,
+  cmap = NULL,
   colValLimits = NULL,
-  cmap = "viridis",
-  naColor = NA,
-  colorLegendTitle = NULL,
-  contourLegendTitle = NULL,
+  naColor = "transparent",
+  nLevels = NULL,
+  hideLegend = FALSE,
+  legendTitle = NA,
   asp = 0,
   xlab = NULL,
   ylab = NULL,
   title = NULL,
-  ...
+  add = FALSE
 )
 }
 \arguments{
-\item{dbGrid}{DbGrid object.}
-
-\item{color}{Name of the variable defining the color of the grid points.}
+\item{color, cat_color}{Name of the variable defining the color of the points: use `color` for continuous variables and `cat_color` for categorical variables.}
 
 \item{contour}{Name of the variable defining the countours of the plot.}
 
-\item{colValLimits}{Vector specifying the limits applied to the variable supplied in \code{color}.}
-
 \item{cmap}{Color map used to plot the points by color. Can be specified by a name (cf. \code{\link{printAllPalettes}} to display vailable choices), or by a vector of color names which will be interpolated to create a palette.}
+
+\item{colValLimits}{Range of values for teh color mapping.}
 
 \item{naColor}{Color used for NA values.}
 
-\item{colorLegendTitle}{Title of the color legend.}
+\item{nLevels}{Number of levels for the contour plot.}
 
-\item{contourLegendTitle}{Title of the contour legend.}
+\item{hideLegend}{Whether to hide the legend.}
+
+\item{legendTitle}{Title of the legend.}
 
 \item{asp}{Aspect ratio of the plot: 0 = No scaling of the axes, 1 = Axes have the same scale.}
 
@@ -45,7 +47,9 @@ dbplot_grid(
 
 \item{title}{Title of plot.}
 
-\item{...}{Additional arguments passed to the \pkg{ggplot2} function \code{geom_raster}.}
+\item{add}{Either a boolean or \pkg{ggplot2} object. If \code{FALSE} (Default), then a new plot is created. If \code{TRUE}, then the points are added to the last plot (see \pkg{ggplot2::last_plot()}) specifying if the points are to be added to the last plot or not}
+
+\item{dbGrid}{DbGrid object.}
 }
 \value{
 A \pkg{ggplot2} object containing the plot. If stored in a variable, use the function \code{print} to display the plot.
@@ -53,6 +57,9 @@ A \pkg{ggplot2} object containing the plot. If stored in a variable, use the fun
 \description{
 Function to plot variables in a Db object as isolated points. The value of the variables are used to define
 the color, size and/or labels of the points.
+}
+\details{
+Note that you can specify only one of the arguments `color`, `cat_color` and `contour`.
 }
 \examples{
 library(minigst)

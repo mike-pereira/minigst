@@ -9,6 +9,6 @@ Description: More about what it does (maybe more than one line)
 License: What license is it under?
 Encoding: UTF-8
 LazyData: true
-Imports: gstlearn (>= 1.3.2), ggplot2, ggpubr
-Depends: gstlearn (>= 1.3.2), ggplot2, ggpubr
+Imports: gstlearn (>= 1.4.0), ggplot2 (>= 3.5.1), ggpubr, ggnewscale (>= 0.5.0)
+Depends: gstlearn (>= 1.4.0), ggplot2 (>= 3.5.1), ggpubr, ggnewscale (>= 0.5.0)
 RoxygenNote: 7.3.2

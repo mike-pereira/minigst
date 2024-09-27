@@ -13,6 +13,7 @@ plot_scatter(
   title = NULL,
   asPoints = FALSE,
   nbins = 25,
+  cmap = "viridis",
   regrLine = FALSE,
   regrLineColor = "blue",
   regrLineType = "solid",
@@ -40,6 +41,8 @@ plot_scatter(
 \item{asPoints}{Whether to plot points using indivudal symbols or counting bins}
 
 \item{nbins}{Number of discretization bins}
+
+\item{cmap}{Color map used to plot the points by color. Can be specified by a name (cf. \code{\link{printAllPalettes}} to display available choices), or by a vector of color names which will be interpolated to create a palette.}
 
 \item{regrLine}{Whether to add a regression line to the plot}
 

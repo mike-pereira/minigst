@@ -4,7 +4,7 @@
 \alias{vario_cloud}
 \title{Compute a variogram cloud}
 \usage{
-vario_cloud(db, vname, dir = NULL, gridRes = 100, tolang = 22.5, plot = TRUE)
+vario_cloud(db, vname, dir = NULL, gridRes = 100, tolang = 22.5)
 }
 \arguments{
 \item{db}{Db object.}
@@ -16,11 +16,9 @@ vario_cloud(db, vname, dir = NULL, gridRes = 100, tolang = 22.5, plot = TRUE)
 \item{gridRes}{Number or vector of size 2 specifying the resolution of the computation grid. See \emph{Details}.}
 
 \item{tolang}{Tolerance on the angles. See \emph{Details}.}
-
-\item{plot}{Whether or not to plot the variogram cloud.}
 }
 \value{
-A DbGrid containing the computed variogram cloud.
+A DbGrid containing the computed variogram cloud, where the number of pairs are stored in each grid cell are stored in a variable calle `Cloud.vname`.
 }
 \description{
 Function to compute a variogram cloud for a variable in a `gstlearn` Db object.
@@ -40,6 +38,7 @@ db=dfToDb(df=Scotland, coordnames=c("Longitude", "Latitude"))
 db$display()
 
 # Compute and plot the omnidirectional variogram cloud of the variable "Elevation".
-varioCloudGrid = vario_cloud(db=db, vname="Elevation", plot = TRUE)
+varioCloudGrid = vario_cloud(db=db, vname="Elevation")
+dbgrid_plot(varioCloudGrid,color="Cloud.Elevation",legendTitle="Nb of pairs")
 
 }

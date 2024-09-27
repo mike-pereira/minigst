@@ -4,7 +4,7 @@
 \alias{vario_map}
 \title{Compute a variogram map}
 \usage{
-vario_map(db, vname, gridRes = 20, plot = T)
+vario_map(db, vname, gridRes = 20)
 }
 \arguments{
 \item{db}{Db object.}
@@ -12,8 +12,6 @@ vario_map(db, vname, gridRes = 20, plot = T)
 \item{vname}{Name of the variable.}
 
 \item{gridRes}{Number specifying the resolution of the computation grid. See \emph{Details}.}
-
-\item{plot}{Whether or not to plot the variogram cloud.}
 }
 \value{
 A DbGrid containing the computed variogram map.

@@ -159,12 +159,11 @@ vario_exp<-function(db,vname, polDrift = NULL, extDrift=NULL,dir=NULL,nlag=20, d
 #' @param dir Direction used to compute the variogram. Can be either \code{NULL} (Default) for an omnidirectional variogram cloud, or a single direction specified either by an angle in degrees (only in 2D and the value denote the angle between the horizontal axis and the desired direction), or as a matrix with a single row containing a direction vector.
 #' @param gridRes Number or vector of size 2 specifying the resolution of the computation grid. See \emph{Details}.
 #' @param tolang Tolerance on the angles. See \emph{Details}.
-#' @param plot Whether or not to plot the variogram cloud.
 #'
 #' @details The variogram cloud is computed as a 2D grid with dimensions given by \code{gridRes}. The first axis discretizes the set of possible distances between pairs of points in \code{db}.
 #' The second axis discretizes the set of possible variogram values between between pairs of points in \code{db}. The value computed at a given grid node corresponds to the number of pairs of points in \code{db} falling in the corresponding grid cell.
 #'
-#' @return A DbGrid containing the computed variogram cloud.
+#' @return A DbGrid containing the computed variogram cloud, where the number of pairs are stored in each grid cell are stored in a variable calle `Cloud.vname`.
 #'
 #' @export
 #'
@@ -179,9 +178,11 @@ vario_exp<-function(db,vname, polDrift = NULL, extDrift=NULL,dir=NULL,nlag=20, d
 #' db$display()
 #'
 #' # Compute and plot the omnidirectional variogram cloud of the variable "Elevation".
-#' varioCloudGrid = vario_cloud(db=db, vname="Elevation", plot = TRUE)
+#' varioCloudGrid = vario_cloud(db=db, vname="Elevation")
+#' dbgrid_plot(varioCloudGrid,color="Cloud.Elevation",legendTitle="Nb of pairs")
 #'
-vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5, plot=TRUE){
+vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5){
+  plot=FALSE
   
   if(length(vname)!=1){
     stop("Variogram clouds are only computed for a single variable: please specify 1 variable name for the argument vname.")
@@ -206,9 +207,9 @@ vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5, plot=TRUE){
   varioParam= .createVarioParam(db,dir=dir,tolang=tolang)
   
   grid.cloud=db_vcloud(db, varioParam,lagnb = gridRes[1], varnb = gridRes[2])
-  if(plot){
+  if(plot){ #<- Bug quand plot=TRUE
     vn=grid.cloud$getNames("Cloud.*")[1]
-    p=dbplot_grid(grid.cloud,color=vn,colorLegendTitle =  "Nb of pairs",cmap='RdBu',naColor = NA,
+    p=dbplot_grid(grid.cloud,color=vn,legendTitle =  "Nb of pairs",cmap='RdBu',
                   xlab = "Distance", ylab = "Variogram", title = paste0("Variogram cloud: ",vname))
     print(p)
   }
@@ -224,7 +225,6 @@ vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5, plot=TRUE){
 #' @param db Db object.
 #' @param vname Name of the variable.
 #' @param gridRes Number specifying the resolution of the computation grid. See \emph{Details}.
-#' @param plot Whether or not to plot the variogram cloud.
 #'
 #' @details The variogram map is computed on a 2D grid, centered at the origin, and with dimensions (2*\code{gridSize}+1) * (2*\code{gridSize}+1).
 #'
@@ -245,24 +245,27 @@ vario_cloud<-function(db,vname,dir=NULL, gridRes=100, tolang= 22.5, plot=TRUE){
 #' # Compute and plot the omnidirectional variogram cloud of the variable "Elevation".
 #' varioMapGrid = vario_map(db=db, vname="Elevation", plot = TRUE)
 #'
-vario_map<-function(db,vname,gridRes=20,plot=T){
-  
+vario_map<-function(db,vname,gridRes=20){
+  plot=F
   setVar(db,vname)
   
   stopifnot(is.numeric(gridRes))
   grid.vmap = db_vmap(db,nxx = rep(gridRes[1],db$getNDim()))
   
-  vn1=grid.vmap$getNames("VMAP.*.Var")[1]
-  p1=dbplot_grid(grid.vmap,color=vn1,cmap="Spectral",
-                 colorLegendTitle ="Var",
-                 title = paste0("Variogram map : ",vname))
-  
-  vn2=grid.vmap$getNames("VMAP.*.Nb")[1]
-  p2=dbplot_grid(grid.vmap,color=vn2,cmap="RdBu",
-                 colorLegendTitle ="Nb",
-                 title = "Number of pairs")
-  
-  print(ggarrange(p1,p2,nrow=1,ncol=2, common.legend = FALSE))
+  if(plot){
+    vn1=grid.vmap$getNames("VMAP.*.Var")[1]
+    p1=dbplot_grid(grid.vmap,color= vn1,cmap="Spectral",
+                   legendTitle ="Var",
+                   title = paste0("Variogram map : ",vname))
+    
+    vn2=grid.vmap$getNames("VMAP.*.Nb")[1]
+    p2=dbplot_grid(grid.vmap,color=vn2,cmap="RdBu",
+                   legendTitle ="Nb",
+                   title = "Number of pairs")
+
+    print(ggarrange(p1,p2,nrow=1,ncol=2, common.legend = FALSE))
+  }
+
   
   return(grid.vmap)
 }

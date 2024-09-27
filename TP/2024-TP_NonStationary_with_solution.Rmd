@@ -130,9 +130,9 @@ minikriging(data, target, vname = "log_cadmium", extDrift ='dist.m',
 
 ```{r}
 ## Plot kriging estimate
-p1=dbplot_grid(target, color='UK.log_cadmium.estim',title='Universal Kriging: Pred.',colorLegendTitle = "Value")
+p1=dbplot_grid(target, color='UK.log_cadmium.estim',title='Universal Kriging: Pred.',legendTitle = "Value")
 ## Plot kriging stdev
-p2=dbplot_grid(target, color='UK.log_cadmium.stdev',title='Universal Kriging: Std-Dev',colorLegendTitle = "Value")
+p2=dbplot_grid(target, color='UK.log_cadmium.stdev',title='Universal Kriging: Std-Dev',legendTitle = "Value")
 ## Side by side plot
 ggarrange(p1,p2,nrow = 1)
 

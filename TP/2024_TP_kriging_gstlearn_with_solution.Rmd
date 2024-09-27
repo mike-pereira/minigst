@@ -234,11 +234,11 @@ minikriging(obsDb, targetDb, vname = "log_cadmium",
 ```{r}
 ## Plot kriging estimate (-> cf. `dbplot_grid`)
 p1=dbplot_grid(targetDb, color='SK_iso.log_cadmium.estim',
-               title='Simple kriging: Predictions',colorLegendTitle = "")
+               title='Simple kriging: Predictions',legendTitle = "")
 
 ## Plot kriging stdev
 p2=dbplot_grid(targetDb, color='SK_iso.log_cadmium.stdev',
-               title='Simple kriging: Std-dev',colorLegendTitle = "", cmap="RdBu")
+               title='Simple kriging: Std-dev',legendTitle = "", cmap="RdBu")
 
 ## Plot side by side
 ggarrange(p1,p2,nrow=1)
@@ -278,11 +278,11 @@ minikriging(obsDb, targetDb, vname = "log_cadmium", model = model_aniso,
 ```{r}
 ## Plot the kriging predictions
 p1=dbplot_grid(targetDb, color='SK.log_cadmium.estim',
-               title='Simple kriging - Aniso: Predictions',colorLegendTitle = "")
+               title='Simple kriging - Aniso: Predictions',legendTitle = "")
 
 ## Plot the kriging stdev
 p2=dbplot_grid(targetDb, color='SK.log_cadmium.stdev',
-               title='Simple kriging - Aniso: Std-dev',colorLegendTitle = "", cmap="RdBu")
+               title='Simple kriging - Aniso: Std-dev',legendTitle = "", cmap="RdBu")
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
@@ -333,11 +333,11 @@ Let us plot the results.
 ```{r}
 ## Plot kriging estimate
 p1=dbplot_grid(targetDb, color='OK.log_cadmium.estim',
-               title='Ordinary kriging: Predictions',colorLegendTitle = "")
+               title='Ordinary kriging: Predictions',legendTitle = "")
 
 ## Plot kriging stdev
 p2=dbplot_grid(targetDb, color='OK.log_cadmium.stdev',
-               title='Ordinary kriging: Std-dev',colorLegendTitle = "", cmap="RdBu")
+               title='Ordinary kriging: Std-dev',legendTitle = "", cmap="RdBu")
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
@@ -412,11 +412,11 @@ Let us plot the results we obtain.
 ```{r}
 ## Plot of kriging predictions
 p1 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.estim',
-                 title='Mov. Neigh. : Kriging predictions',colorLegendTitle = "")
+                 title='Mov. Neigh. : Kriging predictions',legendTitle = "")
 
 ## Plot of kriging stdev
 p2 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.stdev',
-                 title='Mov. Neigh. : Kriging std-dev',colorLegendTitle = "", cmap = "RdBu")
+                 title='Mov. Neigh. : Kriging std-dev',legendTitle = "", cmap = "RdBu")
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
@@ -433,10 +433,10 @@ ggarrange(p1,p2,nrow=1)
 colValLimits = c(-3,3)
 
 ## Plot of kriging predictions using unique neighborhood
-p1 = dbplot_grid(targetDb, color='OK.log_cadmium.estim',title='Unique Neigh. : Kriging predictions',colorLegendTitle = "",colValLimits = colValLimits)
+p1 = dbplot_grid(targetDb, color='OK.log_cadmium.estim',title='Unique Neigh. : Kriging predictions',legendTitle = "",colValLimits = colValLimits)
 
 ## Plot of kriging predictions using unique moving neighborhood
-p2 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.estim',title='Mov. Neigh. : Kriging predictions',colorLegendTitle = "",colValLimits = colValLimits)
+p2 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.estim',title='Mov. Neigh. : Kriging predictions',legendTitle = "",colValLimits = colValLimits)
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
@@ -545,10 +545,10 @@ Let us plot the results
 ```{r}
 ## Cokriging prediction of Cadmium
 p1=dbplot_grid(targetDb,color = 'COK.log_cadmium.estim',
-               title='Cokriging Log cadmium: Predictions',colorLegendTitle = "")
+               title='Cokriging Log cadmium: Predictions',legendTitle = "")
 ## Cokriging standard deviation of Cadmium
 p2=dbplot_grid(targetDb,color = 'COK.log_cadmium.stdev',
-               title='Cokriging Log cadmium: Std-dev',colorLegendTitle = "", cmap="RdBu")
+               title='Cokriging Log cadmium: Std-dev',legendTitle = "", cmap="RdBu")
 ## Plot side by side
 ggarrange(p1,p2,nrow = 1)
 ```
@@ -556,10 +556,10 @@ ggarrange(p1,p2,nrow = 1)
 ```{r}
 ## Cokriging prediction of Copper
 p1=dbplot_grid(targetDb,color = 'COK.log_copper.estim',
-               title='Cokriging Log copper: Predictions',colorLegendTitle = "")
+               title='Cokriging Log copper: Predictions',legendTitle = "")
 ## Cokriging standard deviation of copper
 p2=dbplot_grid(targetDb,color = 'COK.log_copper.stdev',
-               title='Cokriging Log copper: Std-dev',colorLegendTitle = "", cmap="RdBu")
+               title='Cokriging Log copper: Std-dev',legendTitle = "", cmap="RdBu")
 ## Plot side by side
 ggarrange(p1,p2,nrow = 1)
 
@@ -569,10 +569,10 @@ ggarrange(p1,p2,nrow = 1)
 ```{r}
 ## Cokriging prediction of Lead
 p1=dbplot_grid(targetDb,color = 'COK.log_lead.estim',
-               title='Cokriging Log lead: Predictions',colorLegendTitle = "")
+               title='Cokriging Log lead: Predictions',legendTitle = "")
 ## Cokriging standard deviation of lead
 p2=dbplot_grid(targetDb,color = 'COK.log_lead.stdev',
-               title='Cokriging Log lead: Std-dev',colorLegendTitle = "", cmap="RdBu")
+               title='Cokriging Log lead: Std-dev',legendTitle = "", cmap="RdBu")
 ## Plot side by side
 ggarrange(p1,p2,nrow = 1)
 
@@ -581,10 +581,10 @@ ggarrange(p1,p2,nrow = 1)
 ```{r}
 ## Cokriging prediction of Zinc
 p1=dbplot_grid(targetDb,color = 'COK.log_zinc.estim',
-               title='Cokriging Log zinc: Predictions',colorLegendTitle = "")
+               title='Cokriging Log zinc: Predictions',legendTitle = "")
 ## Cokriging standard deviation of zinc
 p2=dbplot_grid(targetDb,color = 'COK.log_zinc.stdev',
-               title='Cokriging Log zinc: Std-dev',colorLegendTitle = "", cmap="RdBu")
+               title='Cokriging Log zinc: Std-dev',legendTitle = "", cmap="RdBu")
 ## Plot side by side
 ggarrange(p1,p2,nrow = 1)
 
