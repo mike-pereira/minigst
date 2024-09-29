@@ -219,6 +219,13 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
   
   df=db[]
   xname=db$getNamesByLocator(ELoc_X())
+  selnames=db$getNamesByLocator(ELoc_SEL())
+  if(length(selnames)>0){
+    selvec=(apply(as.matrix(df[selnames]),1,prod)==1)
+    df=df[selvec,]
+  }
+  
+  
   aes_plt=aes(x=.data[[xname[1]]],y=.data[[xname[2]]])
   
   discreteVal=FALSE
@@ -286,6 +293,20 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
   }else{
     p=p+geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
   }
+  
+  
+  if(is.null(xlab)){
+    xlab=xname[1]
+  }
+  if(is.null(ylab)){
+    ylab=xname[2]
+  }
+  if(is.null(title)){
+    p=p+plot.decoration(xlab = xlab, ylab = ylab,title = "")
+  }else{
+    p=p+plot.decoration(xlab = xlab, ylab = ylab, title = title)
+  }
+  
   
   return(p)
 }
@@ -448,7 +469,15 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
     p = add
   }
   
+  
+  df=db[]
   xname=db$getNamesByLocator(ELoc_X())
+  selnames=db$getNamesByLocator(ELoc_SEL())
+  if(length(selnames)>0){
+    selvec=(apply(as.matrix(df[selnames]),1,prod)==1)
+    df=df[selvec,]
+  }
+  
   aes_plt=aes(x=.data[[xname[1]]],y=.data[[xname[2]]])
   
   discreteVal=FALSE
@@ -461,7 +490,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
     }else{
       discreteVal=TRUE
       aes_plt$fill = substitute(factor(.data[[cat_color]]))
-      ncol=length(levels(factor(db[cat_color])))
+      ncol=length(levels(factor(df[cat_color])))
       if(is.null(cmap)){
         cmap=1:ncol
       }else if(length(cmap)<ncol){
@@ -471,7 +500,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   }
   
   if(!is.null(color)||!is.null(cat_color)){
-    p=p+geom_raster(data=db[],aes_plt,show.legend=ifelse(hideLegend,FALSE,NA)) 
+    p=p+geom_raster(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA)) 
     if(!is.null(cmap)){
       p =p + .defineFill(cmap,flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = legendTitle)
       p = p+new_scale("fill")
@@ -480,7 +509,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
       p = p+new_scale("fill")
     }
   }else if(!is.null(contour)){
-    p=p+geom_contour(data=db[],
+    p=p+geom_contour(data=df,
                      aes(x=.data[[xname[1]]],y=.data[[xname[2]]],
                          z=.data[[contour]],colour=after_stat(level)
                      ),
@@ -500,10 +529,10 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   
   p=p+plot.geometry(asp=asp)
   if(is.null(xlab)){
-    xlab=Db_getNamesByLocator(db,ELoc_X())[1]
+    xlab=xname[1]
   }
   if(is.null(ylab)){
-    ylab=Db_getNamesByLocator(db,ELoc_X())[2]
+    ylab=xname[2]
   }
   if(is.null(title)){
     p=p+plot.decoration(xlab = xlab, ylab = ylab,title = "")

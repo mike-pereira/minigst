@@ -9,3 +9,4 @@
 \description{
 Function to delete variable which already exists in a Db
 }
+\keyword{internal}

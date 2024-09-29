@@ -108,9 +108,9 @@ minikriging<-function (dbin, dbout, vname, model, type = "ordinary", polDrift = 
     setVar(dbout,extDrift,"Drift")
     
     ## Delete previous kriging result
-    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
+    delVarFromDb(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
     if(std){
-      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
+      delVarFromDb(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
     }
     ## Kriging
     err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
@@ -133,9 +133,9 @@ minikriging<-function (dbin, dbout, vname, model, type = "ordinary", polDrift = 
     err = mdl$setMean(mean)
     
     ## Delete previous kriging result
-    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
+    delVarFromDb(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
     if(std){
-      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
+      delVarFromDb(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
     }
     ## Compute kriging
     err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
@@ -156,9 +156,9 @@ minikriging<-function (dbin, dbout, vname, model, type = "ordinary", polDrift = 
     err = mdl$addDrift(DriftM())
     
     ## Delete previous kriging result
-    .deleteExistingVar(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
+    delVarFromDb(dbout,paste0(c(prefix,vname,"estim"),collapse = "."))
     if(std){
-      .deleteExistingVar(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
+      delVarFromDb(dbout,paste0(c(prefix,vname,"stdev"),collapse = "."))
     }
     ## Kriging
     err = kriging(dbin=dbin, dbout=dbout, model=mdl, 
@@ -262,9 +262,9 @@ minixvalid<-function (dbin, vname, model, type = "ordinary", polDrift = NULL, ex
     setVar(dbin,extDrift,"Drift")
     
     ## Delete previous xvalid result
-    .deleteExistingVar(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
+    delVarFromDb(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
     if(std){
-      .deleteExistingVar(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
+      delVarFromDb(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
     }
     ## xvalid
     err = xvalid(dbin, model=mdl, 
@@ -285,9 +285,9 @@ minixvalid<-function (dbin, vname, model, type = "ordinary", polDrift = NULL, ex
     err = mdl$setMean(mean)
     
     ## Delete previous xvalid result
-    .deleteExistingVar(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
+    delVarFromDb(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
     if(std){
-      .deleteExistingVar(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
+      delVarFromDb(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
     }
     ## Compute xvalid
     err = xvalid(dbin, model=mdl, 
@@ -307,9 +307,9 @@ minixvalid<-function (dbin, vname, model, type = "ordinary", polDrift = NULL, ex
     err = mdl$addDrift(DriftM())
     
     ## Delete previous xvalid result
-    .deleteExistingVar(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
+    delVarFromDb(dbin,paste0(c(prefix,vname,"esterr"),collapse = "."))
     if(std){
-      .deleteExistingVar(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
+      delVarFromDb(dbin,paste0(c(prefix,vname,"stderr"),collapse = "."))
     }
     ## xvalid
     err = xvalid(dbin, model=mdl, 

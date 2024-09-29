@@ -411,12 +411,10 @@ printAllStruct<-function(){
 }
 
 
-tit<-function(){
-  .checkStructNames("Exp")
-}
-
 #'
 #' Wraper for the function that doesn't crash R if names are mispecified
+#'
+#' @keywords internal
 #'
 .checkStructNames<-function(struct_names){
   AllStruct=getAllStruct()
@@ -432,6 +430,7 @@ tit<-function(){
 
 #'
 #'Function to check the covariance parameters proposed by the user
+#' @keywords internal
 #'
 .checkCovParam<-function(param,nameParam,n){
   paramf=param

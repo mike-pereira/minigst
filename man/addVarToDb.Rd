@@ -2,22 +2,25 @@
 % Please edit documentation in R/Db.R
 \name{addVarToDb}
 \alias{addVarToDb}
-\title{Add a variable to a Db}
+\alias{delVarFromDb}
+\title{Manage variables in a Db}
 \usage{
 addVarToDb(db, var, vname)
+
+delVarFromDb(db, vname)
 }
 \arguments{
 \item{db}{Db object.}
 
 \item{var}{A vector (or a matrix) containing the new variable(s) to be added to \code{db}. The length (or number of rows) of `var` must be equal to the number of points/rows in \code{db} (given by \code{nrow(db[])}).}
 
-\item{vname}{Name(s) of the new variables, stored as a (vector of) string(s).}
+\item{vname}{Name(s) of the new variables to add or of the existing variables to delete, stored as a (vector of) string(s).}
 }
 \value{
 The function updates \code{db} and returns nothing.
 }
 \description{
-Function to add a new variable/column to an existing `gstlearn` Db object.
+Functions to add  new variables/columns to an existing `gstlearn` Db object, or delete existing variables/columns from a Db.
 }
 \examples{
 library(minigst)
@@ -36,5 +39,10 @@ head(newVars)
 # Add variables to db
 addVarToDb(db=db, var = newVars, vname = c("Newvar1", "Newvar2"))
 db$display()
+
+# Delete variables from db
+delVarFromDb(db=db, vname = c("Newvar1", "Newvar2"))
+db$display()
+
 
 }

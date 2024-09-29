@@ -303,13 +303,13 @@ dfToDbGrid<-function(df,coordnames){
 #----------------------------------------------
 
 
-#' Add a variable to a Db
+#' Manage variables in a Db
 #'
-#' Function to add a new variable/column to an existing `gstlearn` Db object.
+#' Functions to add  new variables/columns to an existing `gstlearn` Db object, or delete existing variables/columns from a Db.
 #'
 #' @param db Db object.
 #' @param var A vector (or a matrix) containing the new variable(s) to be added to \code{db}. The length (or number of rows) of `var` must be equal to the number of points/rows in \code{db} (given by \code{nrow(db[])}).
-#' @param vname Name(s) of the new variables, stored as a (vector of) string(s).
+#' @param vname Name(s) of the new variables to add or of the existing variables to delete, stored as a (vector of) string(s).
 #'
 #' @return The function updates \code{db} and returns nothing.
 #'
@@ -332,6 +332,11 @@ dfToDbGrid<-function(df,coordnames){
 #' # Add variables to db
 #' addVarToDb(db=db, var = newVars, vname = c("Newvar1", "Newvar2"))
 #' db$display()
+#' 
+#' # Delete variables from db
+#' delVarFromDb(db=db, vname = c("Newvar1", "Newvar2"))
+#' db$display()
+#' 
 #'
 addVarToDb<-function(db,var,vname){
   
@@ -356,6 +361,21 @@ addVarToDb<-function(db,var,vname){
   return(invisible(NULL))
   
 }
+
+
+#' @rdname addVarToDb
+#'
+#' @export
+#'
+delVarFromDb<-function(db,vname){
+  for(v in vname){
+    if(v %in% colnames(db[])){
+      db$deleteColumns(names = v)
+    }
+  }
+  return(invisible(NULL))
+}
+
 
 
 #----------------------------------------------
@@ -543,23 +563,12 @@ summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
   
 }
 
-#'
-#'Function to delete variable which already exists in a Db
-#'
-.deleteExistingVar<-function(db,vname){
-  for(v in vname){
-    if(v %in% colnames(db[])){
-      db$deleteColumns(names = v)
-    }
-  }
-  return(invisible(NULL))
-}
-
-
 
 
 #'
-#'Function to delete variable which already exists in a Db
+#' Function to delete variable which already exists in a Db
+#'
+#' @keywords internal
 #'
 .checkVariableNames<-function(db,vname){
   for(v in vname){

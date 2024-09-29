@@ -1,12 +1,11 @@
 Package: minigst
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Wrapper package for gstlearn
 Version: 0.1.0
-Author: Mike Pereira
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Emilie Chautru, Mike Pereira, Thomas Romary
+Maintainer: Mike Pereira <mike.pereira@minesparis.psl.eu>
+Description: This package provides wrapper functions for an easy access to gstlearn's main tools and functions.
+License: GPL
 Encoding: UTF-8
 LazyData: true
 Imports: gstlearn (>= 1.4.0), ggplot2 (>= 3.5.1), ggpubr, ggnewscale (>= 0.5.0)

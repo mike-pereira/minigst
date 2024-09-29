@@ -9,3 +9,4 @@
 \description{
 Function to check the covariance parameters proposed by the user
 }
+\keyword{internal}

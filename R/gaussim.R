@@ -127,7 +127,7 @@ minirgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = 
       }else{
         sim_names=paste0(simname,".",1:nsim)
       }
-      .deleteExistingVar(target,sim_names)
+      delVarFromDb(target,sim_names)
       err = simtub(dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, seed=seed, namconv=NamingConvention(simname))
     }else{
       if(nsim==1){
@@ -135,7 +135,7 @@ minirgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = 
       }else{
         sim_names=paste0("Simu",".",1:nsim)
       }
-      .deleteExistingVar(target,sim_names)
+      delVarFromDb(target,sim_names)
       err = simtub(dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, seed = seed, namconv=NamingConvention("Simu"))
     }
     
@@ -164,7 +164,7 @@ minirgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = 
       }else{
         sim_names=paste0(simname,".",vcond,".",1:nsim)
       }
-      .deleteExistingVar(target,sim_names)
+      delVarFromDb(target,sim_names)
       err = simtub(dbin = dbcond, dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, neigh = neighU, seed=seed, namconv=NamingConvention(simname))
     }else{
       if(nsim==1){
@@ -172,7 +172,7 @@ minirgrf <- function(target, model, nsim, ntuba = 1000, seed = 43431, simname = 
       }else{
         sim_names=paste0("Simu",".",vcond,".",1:nsim)
       }
-      .deleteExistingVar(target,sim_names)
+      delVarFromDb(target,sim_names)
       err = simtub(dbin = dbcond, dbout=target, model=model, nbsimu=nsim, nbtuba=ntuba, neigh = neighU, seed = seed)
     }
     

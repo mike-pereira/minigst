@@ -9,3 +9,4 @@
 \description{
 Wraper for the function that doesn't crash R if names are mispecified
 }
+\keyword{internal}
