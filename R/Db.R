@@ -580,3 +580,75 @@ summaryStats<-function(db,vname,stat=NULL,onlyCommon=FALSE){
 }
 
 
+
+#'
+#' Migrate variables from one Db to another one
+#'
+#' Function to migrate variables from one Db to another one (by assigning to each location of the target Db the values of the variables at the closest location in the input Db).
+#' 
+#' @param dbin Db object containing the data from which the migration takes place.
+#' @param dbout Db object containing the data to which the migration takes place.
+#' @param vname Names of the variables (in `dbin`) to migrate: if `NULL`, all the variables are migrated.
+#' @param prefix Prefix added to the migrated variables (in `dbout`)
+#' @param addIdOrigin Add a column in `dbout` to indicate the id (row number in `dbin`) of the migrated variable.
+#' @param addIdOrigin Add a column in `dbout` to indicate the id (row number in `dbin`) of the migrated variable.
+#'
+#' @return Updates `dbout` by adding the migrated variables and returns nothing.
+#'
+#' @export
+#'
+#' @examples
+#' library(minigst)
+#' 
+#' ## Load Data
+#' data("Scotland")
+#' data("ScotlandGrid")
+#' 
+#' ## Origin and destination Db
+#' dbin=dfToDb(Scotland,c("Longitude","Latitude"),isGrid = F)
+#' dbout=dfToDbGrid(ScotlandGrid,c("Longitude","Latitude"))
+#' 
+#' ## Migration
+#' migrateVar(dbin,dbout,prefix="Migr")
+#' dbout
+#'
+migrateVar<-function(dbin,dbout,vname=NULL,prefix=NULL,
+                     addIdOrigin=TRUE,addSelNotNA=TRUE){
+  
+  dbin["idOrigin"]=1:nrow(dbin[])
+  
+  if(is.null(vname)){
+    vnames=setdiff(colnames(dbin[]),dbin$getNamesByLocator(ELoc_X()))
+  }else{
+    .checkVariableNames(dbin,vname)
+    vnames=vname
+  }
+  
+  if(is.null(prefix)|| !is.character(prefix)){
+    delVarFromDb(dbout,c(vnames,"Sel_Not_NA"))
+    err = migrateMulti(dbin=dbin, dbout = dbout,  names = vnames,
+                       namconv = NamingConvention())
+    if(addSelNotNA){
+      res = dbout$addSelection(tab = !is.na(dbout[]["idOrigin"]), name = "Sel_Not_NA")
+    }
+    if(!addIdOrigin){
+      delVarFromDb(dbout,"idOrigin")
+    }
+  }else{
+    delVarFromDb(dbout,c(paste0(prefix,".",vnames),"Sel_Not_NA"))
+    err = migrateMulti(dbin=dbin, dbout = dbout,  names = vnames,
+                       namconv=NamingConvention(prefix))
+    if(addSelNotNA){
+      res = dbout$addSelection(tab = !is.na(dbout[][paste0(prefix,".","idOrigin")]), name = "Sel_Not_NA")
+    }
+    if(!addIdOrigin){
+      delVarFromDb(dbout,paste0(prefix,".","idOrigin"))
+    }
+  }
+  
+  ## Clean
+  err = Db_clearLocators(dbout,ELoc_Z())
+  delVarFromDb(dbin,"idOrigin")
+  
+}
+
