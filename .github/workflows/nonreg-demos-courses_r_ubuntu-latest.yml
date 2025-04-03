@@ -4,11 +4,15 @@ on:
   # Permit calling the workflow from outside (https://github.com/actions/runner/discussions/1884)
   workflow_call:
    # Activate the workflow at each push on main branch
-  #push:
-  #  branches: [ main ]
+  push:
+    branches: [ main ]
   # Activate the workflow at each pull request on main branch
-  #pull_request:
-  #  branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  # Activate the workflow every day at 23:30 UTC = for Paris 00:30 (summer) or 01:30 (winter)
+  schedule:
+    # * is a special character in YAML so you have to quote the string
+    - cron:  '30 23 * * *'
   # Permit manual trigger
   workflow_dispatch:
     inputs:
@@ -21,7 +25,7 @@ env:
   CMAKE_BUILD_TYPE : Release
   BUILD_DIR : build
   R_VERSION : "4.3.2"
-  SWIG_ROOT : ${{github.workspace}}/swig_420b
+  SWIG_ROOT : ${{github.workspace}}/swig_430b
 
 jobs:
   build:
@@ -58,19 +62,19 @@ jobs:
       run: |
         cmake --build ${{env.BUILD_DIR}} --parallel 3
 
-    - name: Execute R demos and courses
+    - name: Execute R TP
       run: |
-        cmake --build ${{env.BUILD_DIR}} --parallel 3 --target check_rmd
+        run/build_rmd_html.sh TP ~/minigst run/run_test_rmd.R
 
     - name: Compress output logs
       if: success() || failure()
       run: |
-        cd ${{env.BUILD_DIR}}/tests
-        find . -type f \( -name "*.out" \) -print0 | tar -czvf demos-courses-r-logs.tar.gz --null -T -
+        cd ~/minigst
+        find . -type f \( -name "*.out" \) -print0 | tar -czvf TP-r-logs.tar.gz --null -T -
 
     - name: Publish output logs as artefact
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: demos-courses-r-logs
-        path: ${{env.BUILD_DIR}}/tests/demos-courses-r-logs.tar.gz
+        name: TP-r-logs
+        path: ~/minigst/TP-r-logs.tar.gz

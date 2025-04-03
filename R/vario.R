@@ -320,7 +320,7 @@ vario_map<-function(db,vname,gridRes=20){
 #'            title="Model adjustment for Elevation")
 #'
 #'
-model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE,verbose=FALSE, ...){
+model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
   types = .checkStructNames(struct)
   model = Model()
   if(class(vario)=="_p_Vario"){
@@ -329,7 +329,7 @@ model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneMo
       ## Add drifts to model
       .addDriftsToModel(model,polDrift,length(extDrift))
     } 
-    err = model$fit(vario, types=types, optvar=Option_VarioFit(flag_noreduce=pruneModel,auth_aniso=anisoModel),verbose=verbose)
+    err = model$fit(vario, types=types, optvar=Option_VarioFit(flag_noreduce=pruneModel,auth_aniso=anisoModel))
   
   }else if(class(vario)=="_p_DbGrid"){
     vn=vario$getNames("VMAP.*.Var")[1]
@@ -337,7 +337,7 @@ model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneMo
       stop("The DbGrid supplied in 'vario' should contain a variogram map saved as a variable whose name is of the form 'VMAP.*.Var'.")
     }
     setVar(vario,vn)
-    err = model$fitFromVMap(vario, types=types, optvar=Option_VarioFit(flag_noreduce=pruneModel,auth_aniso=anisoModel),verbose=verbose, ...)
+    err = model$fitFromVMap(vario, types=types, optvar=Option_VarioFit(flag_noreduce=pruneModel,auth_aniso=anisoModel))
   }else{
     stop("The argument 'vario' expects either an experimental variogram or a DbGrid conatining a variogram map.")
   }

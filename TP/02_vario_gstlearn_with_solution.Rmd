@@ -475,8 +475,8 @@ plot_vario(varioexp_iso,model = model_aniso,pairDisplay = "size",
 
 # anisotropic case
 model_aniso = model_fit(varioexp_aniso,struct=struct_names)
-#plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
-#           title="Model adjustment for cadmium")
+plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
+           title="Model adjustment for cadmium")
 
 
 ```
@@ -487,14 +487,11 @@ model_aniso = model_fit(varioexp_aniso,struct=struct_names)
 struct_names = c("NUGGET","EXPONENTIAL", "SPHERICAL")
 
 # model fitted on the variogram map
-ot = Option_AutoFit()
-ot$setMaxiter(50)
-OptDbg_define(EDbg_CONVERGE())
-modelVM = model_fit(grid.vmap,struct=struct_names,mauto=ot,verbose=TRUE)
+modelVM = model_fit(grid.vmap,struct=struct_names)
 modelVM$display()
 
 # model fitted on the experimental variogram (4 directions)
-modelexp = model_fit(varioexp_aniso,struct=struct_names,verbose=TRUE)
+modelexp = model_fit(varioexp_aniso,struct=struct_names)
 modelexp$display()
 
 # comparison with the model adjusted on the variogram (plot both models)
