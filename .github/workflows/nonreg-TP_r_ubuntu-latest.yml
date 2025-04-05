@@ -59,6 +59,7 @@ jobs:
         Rscript -e "install.packages (
           c('ggplot2', 
             'ggpubr', 
+            'knitr',
             'ggnewscale'),
             repos='https://cloud.r-project.org/')"
 
