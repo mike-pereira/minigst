@@ -38,7 +38,7 @@ flist=$(ls $in_dir/*.Rmd)
 for fsc in $flist 
 do
   echo "  Processing $fsc"
-  R CMD BATCH --no-save --no-restore "--args $fsc $out_dir R" $runner
+  R CMD BATCH --no-save --no-restore "--args $fsc $out_dir html" $runner
 done
 
 echo "Done"

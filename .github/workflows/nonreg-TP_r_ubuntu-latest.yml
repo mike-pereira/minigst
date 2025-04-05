@@ -65,7 +65,7 @@ jobs:
         repository: gstlearn/gstlearn
         path: ${{env.GSTLEARN_ROOT}}
         
-    - name: Configure build directory for R package
+    - name: Configure build directory for R gstlearn
       run: |
         cd ${{env.GSTLEARN_ROOT}}
         cmake \
@@ -76,10 +76,14 @@ jobs:
           -DBUILD_DOC=OFF \
           -DSWIG_EXECUTABLE=${{env.SWIG_ROOT}}/bin/swig
 
-    - name: Build the package
+    - name: Install gstlearn
       run: |
         cd ${{env.GSTLEARN_ROOT}}
-        cmake --build ${{env.BUILD_DIR}} --parallel 3
+        cmake --build ${{env.BUILD_DIR}} --target install_r --parallel 3
+
+    - name: Install minigst
+      run: |
+        R CMD INSTALL .
 
     - name: Execute R TP
       run: |
