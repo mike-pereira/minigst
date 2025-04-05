@@ -26,7 +26,7 @@ env:
   BUILD_DIR : build
   R_VERSION : "4.3.2"
   GSTLEARN_ROOT : ${{github.workspace}}/gstlearn
-  SWIG_ROOT : ${{github.workspace}}/swig_430b
+  SWIG_ROOT : ${{github.workspace}}/swig
 
 jobs:
   build:
@@ -54,12 +54,6 @@ jobs:
       with:
         r-version: ${{env.R_VERSION}}
 
-    #- name: Install roxygen2
-    #  uses: r-lib/actions/setup-r-dependencies@v2
-    #  with:
-    #    packages: roxygen2
-    #    install-pandoc: false
-
     - name: Install the customized SWIG from source
       uses: fabien-ors/install-swig-unix-action@v1
       with:
@@ -78,6 +72,8 @@ jobs:
           -B${{ env.BUILD_DIR }} \
           -DBUILD_PYTHON=OFF \
           -DBUILD_R=ON \
+          -DBUILD_TESTING=OFF \
+          -DBUILD_DOC=OFF \
           -DSWIG_EXECUTABLE=${{env.SWIG_ROOT}}/bin/swig
 
     - name: Build the package
