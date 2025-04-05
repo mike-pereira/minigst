@@ -60,6 +60,7 @@ jobs:
           c('ggplot2', 
             'ggpubr', 
             'knitr',
+            'rmarkdown',
             'ggnewscale'),
             repos='https://cloud.r-project.org/')"
 
