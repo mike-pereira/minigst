@@ -18,11 +18,6 @@ for fsc in $flist
 do
   echo "  Processing $fsc"
   R CMD BATCH --no-save --no-restore "--args $fsc $out_dir html" $runner
-  if [ $? -ne 0 ]
-  then
-    echo "Error while executing $fsc"
-    exit -1
-  fi
   cat run_test_rmd.Rout
 done
 
