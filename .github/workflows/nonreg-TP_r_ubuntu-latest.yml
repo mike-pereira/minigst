@@ -79,7 +79,7 @@ jobs:
     - name: Install gstlearn
       run: |
         cd ${{env.GSTLEARN_ROOT}}
-        cmake --build ${{env.BUILD_DIR}} --target install_r --parallel 3
+        cmake --build ${{env.BUILD_DIR}} --target r_install --parallel 3
 
     - name: Install minigst
       run: |
