@@ -65,7 +65,7 @@ for (i in 1:length(var_names)) {
   meuse[logvar_names[i]]=log(meuse[var_names[i]])
 }
 ## Print the first lines of the dataframe
-print(head(meuse))
+head(meuse)
 ```
 
 
@@ -101,10 +101,9 @@ Let us extract the scale and sill parameters of the variogram we just fitted on 
 
 ```{r}
 ## Extract scale
-model_scale=model_getScales(model_iso)[1]
+model_scale = model_iso$getCovAniso(0)$getScales()[1]
 ## Extract sill
-model_sill = model_getSills(model_iso)[1,1,1]
-
+model_sill = model_iso$getSill(0,0,0)
 ```
 
 2. Implement a function to evaluate for a given lag the covariance of the model we just fitted on the data (using the parameters `model_scale` and `model_sill` extracted above).
@@ -139,7 +138,7 @@ print(head(targetData))
 ```{r}
 ## Mean of observations
 mean_log_cadmium = mean(obsData$log_cadmium)
-mean_log_cadmium
+print(mean_log_cadmium)
 ```
 
 
@@ -459,7 +458,7 @@ plot_hist(obsDb,vname=xvalid_name,nbin=30,color="blue",xlab="Estimation Errors",
 print(c("Mean cross-validation error:",mean(obsDb[,xvalid_name], na.rm=TRUE)))
 print(c("Mean squared cross-validation error:",mean(obsDb[,xvalid_name]^2, na.rm=TRUE)))
 
-## Plot ordinary kriging prediction and 
+## Plot ordinary kriging prediction
 dbplot_point(obsDb,color = xvalid_name, cmap="viridis")
 
 
