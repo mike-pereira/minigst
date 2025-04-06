@@ -469,7 +469,7 @@ plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
 ```{r fitting_vs_structures, echo=TRUE, eval=TRUE}
 struct_names = c("NUGGET","CUBIC")
 # isotropic case
-model_iso = model_fit(varioexp_iso,struct=struct_names,verbose=TRUE)
+model_iso = model_fit(varioexp_iso,struct=struct_names)
 plot_vario(varioexp_iso,model = model_aniso,pairDisplay = "size",
            title="Model adjustment for cadmium")
 

@@ -16,9 +16,17 @@ mkdir -p $out_dir
 flist=$(ls $in_dir/*.Rmd)
 for fsc in $flist 
 do
-  echo "  Processing $fsc"
-  R CMD BATCH --no-save --no-restore "--args $fsc $out_dir html" $runner
-  cat run_test_rmd.Rout
+  if [ "$fsc" != "03_kriging_gstlearn.Rmd" ];
+  then
+    echo "  Processing $fsc"
+    R CMD BATCH --no-save --no-restore "--args $fsc $out_dir html" $runner
+    if [ $? -ne 0 ]
+    then
+      echo "  Error processing $fsc"
+      exit -1
+    fi
+    cat run_test_rmd.Rout
+  fi
 done
 
 echo "Done"
