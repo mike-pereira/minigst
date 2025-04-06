@@ -20,12 +20,13 @@ do
   then
     echo "  Processing $fsc"
     R CMD BATCH --no-save --no-restore "--args $fsc $out_dir html" $runner
-    cat run_test_rmd.Rout
     if [ $? -ne 0 ]
     then
       echo "  Error processing $fsc"
+      cat run_test_rmd.Rout
       exit -1
     fi
+    cat run_test_rmd.Rout
   fi
 done
 
