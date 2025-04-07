@@ -100,17 +100,17 @@ jobs:
 
     - name: Execute R TP
       run: |
-        run/build_rmd_html.sh TP ~/minigst run/run_test_rmd.R
+        run/build_rmd_html.sh TP ~/minigst_out run/run_test_rmd.R
 
     - name: Compress output logs
       if: success() || failure()
       run: |
-        cd ~/minigst
-        find . -type f \( -name "*.out" \) -print0 | tar -czvf TP-r-logs.tar.gz --null -T -
+        cd ~/minigst_out
+        find . -type f \( -name "*.html" \) -print0 | tar -czvf TP-r-logs.tar.gz --null -T -
 
     - name: Publish output logs as artefact
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: TP-r-logs
-        path: ~/minigst/TP-r-logs.tar.gz
+        path: ~/minigst_out/TP-r-logs.tar.gz
