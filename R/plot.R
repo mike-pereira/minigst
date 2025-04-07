@@ -471,7 +471,12 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   
   
   df=db[]
-  xname=db$getNamesByLocator(ELoc_X())
+  ## Extract name of coordinates
+  xname0=db$getNamesByLocator(ELoc_X())
+  ## Copy coordinates 
+  xname=paste0(xname0,"_copy")
+  df[,xname]=df[,xname0]
+  ## Extarct and apply selection
   selnames=db$getNamesByLocator(ELoc_SEL())
   if(length(selnames)>0){
     selvec=apply(as.matrix(df[selnames]),1,prod)
@@ -530,10 +535,10 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   
   p=p+plot.geometry(asp=asp)
   if(is.null(xlab)){
-    xlab=xname[1]
+    xlab=xname0[1]
   }
   if(is.null(ylab)){
-    ylab=xname[2]
+    ylab=xname0[2]
   }
   if(is.null(title)){
     p=p+plot.decoration(xlab = xlab, ylab = ylab,title = "")
