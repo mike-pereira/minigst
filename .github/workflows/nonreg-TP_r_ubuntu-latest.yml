@@ -1,0 +1,116 @@
+name: nonreg-TP_r_ubuntu-latest
+
+on:
+  # Permit calling the workflow from outside (https://github.com/actions/runner/discussions/1884)
+  workflow_call:
+   # Activate the workflow at each push on main branch
+  push:
+    branches: [ main ]
+  # Activate the workflow at each pull request on main branch
+  pull_request:
+    branches: [ main ]
+  # Activate the workflow every day at 23:30 UTC = for Paris 00:30 (summer) or 01:30 (winter)
+  schedule:
+    # * is a special character in YAML so you have to quote the string
+    - cron:  '30 23 * * *'
+  # Permit manual trigger
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Manual'
+        required: false
+        default: ''
+
+env:
+  CMAKE_BUILD_TYPE : Release
+  BUILD_DIR : build
+  R_VERSION : "4.3.2"
+  GSTLEARN_ROOT : ${{github.workspace}}/gstlearn
+  SWIG_ROOT : ${{github.workspace}}/swig
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install dependencies
+      run: |
+        sudo rm /etc/apt/sources.list.d/microsoft-prod.list
+        sudo apt-get update
+        sudo apt-get install -yq \
+          libhdf5-dev \
+          libsuitesparse-dev \
+          libopenmpi-dev \
+          libboost-dev \
+          libeigen3-dev \
+          libnlopt-dev \
+          libpng-dev \
+          pandoc
+
+    - name: Setup R Version
+      uses: r-lib/actions/setup-r@v2
+      with:
+        r-version: ${{env.R_VERSION}}
+
+    - name: Install R dependencies
+      run: |
+        Rscript -e "install.packages (
+          c('ggplot2', 
+            'ggpubr', 
+            'knitr',
+            'rmarkdown',
+            'sp',
+            'fields',
+            'geoR',
+            'ggnewscale'),
+            repos='https://cloud.r-project.org/')"
+
+    - name: Install the customized SWIG from source
+      uses: fabien-ors/install-swig-unix-action@v1
+      with:
+        swig-root: ${{env.SWIG_ROOT}}
+        generator: "Unix Makefiles"
+
+    - uses: actions/checkout@v4
+      with:
+        repository: gstlearn/gstlearn
+        path: ${{env.GSTLEARN_ROOT}}
+        
+    - name: Configure build directory for R gstlearn
+      run: |
+        cd ${{env.GSTLEARN_ROOT}}
+        cmake \
+          -B${{ env.BUILD_DIR }} \
+          -DBUILD_PYTHON=OFF \
+          -DBUILD_R=ON \
+          -DBUILD_TESTING=OFF \
+          -DBUILD_DOC=OFF \
+          -DSWIG_EXECUTABLE=${{env.SWIG_ROOT}}/bin/swig
+
+    - name: Install gstlearn
+      run: |
+        cd ${{env.GSTLEARN_ROOT}}
+        cmake --build ${{env.BUILD_DIR}} --target r_install --parallel 3
+
+    - name: Install minigst
+      run: |
+        R CMD INSTALL .
+
+    - name: Execute R TP
+      run: |
+        run/build_rmd_html.sh TP ~/minigst_out run/run_test_rmd.R
+
+    - name: Compress output logs
+      if: success() || failure()
+      run: |
+        cd ~/minigst_out
+        find . -type f \( -name "*.html" \) -print0 | tar -czvf TP-r-logs.tar.gz --null -T -
+
+    - name: Publish output logs as artefact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: TP-r-logs
+        path: ~/minigst_out/TP-r-logs.tar.gz
