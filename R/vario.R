@@ -367,37 +367,11 @@ model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneMo
 #' 
 getAllStruct<-function(){
   ## Available structures
-  AllStruct=t(matrix(c(0,"NUGGET","Nugget effect",
-                       1,"EXPONENTIAL","Exponential covariance",
-                       2,"SPHERICAL","Spherical covariance",
-                       3,"GAUSSIAN","Gaussian covariance",
-                       4,"CUBIC","Cubic covariance",
-                       5,"SINCARD","Sine Cardinal covariance",
-                       6,"BESSEL_J","Bessel J covariance",
-                       7,"BESSEL_K","Bessel K / Matérn covariance",
-                       8,"GAMMA","Gamma covariance",
-                       9,"CAUCHY","Cauchy covariance",
-                       10,"STABLE","Stable covariance",
-                       11,"LINEAR","Linear covariance",
-                       12,"POWER","Power covariance",
-                       13,"ORDER1_GC","First Order Generalized covariance",
-                       14,"SPLINE_GC","Spline Generalized covariance",
-                       15,"ORDER3_GC","Third Order Generalized covariance",
-                       16,"ORDER5_GC","Fifth Order Generalized covariance",
-                       17,"COSINUS","Cosine covariance",
-                       18,"TRIANGLE","Triangle covariance",
-                       19,"COSEXP","Cosine Exponential covariance",
-                       20,"REG1D","1-D Regular covariance",
-                       21,"PENTA","Pentamodel covariance",
-                       22,"SPLINE2_GC","Order-2 Spline covariance",
-                       23,"STORKEY","Storkey covariance in 1-D covariance",
-                       24,"WENDLAND0","Wendland covariance (2,0)",
-                       25,"WENDLAND1","Wendland covariance (3,1)",
-                       26,"WENDLAND2","Wendland covariance (4,2)",
-                       27,"MARKOV","Markovian covariances"),nrow=3))
-  AllStruct=AllStruct[,2:3]
-  colnames(AllStruct)=c('Name','Description')
-  AllStruct=data.frame(AllStruct)
+  vnames=ECov_getAllKeys()
+  ## Remove "weird" choices
+  id_sel=which(!(vnames %in% c("UNKNOWN","FUNCTION")))
+  
+  AllStruct=data.frame("Name"=ECov_getAllKeys()[id_sel],"Description"=ECov_getAllDescr()[id_sel])
   return(AllStruct)
 }
 
