@@ -452,12 +452,12 @@ createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=
   nstruct=length(struct)
   range=.checkCovParam(range,"range",nstruct)
   sill=.checkCovParam(sill,"sill",nstruct)
-  param=.checkCovParam(param,"sill",param)
+  param=.checkCovParam(param,"param",param)
   
   ## Create empty model for 1 variable, and spaceDim dimension
   model = Model(1,ndim)
   for(i in 1:nstruct){
-    err=Model_addCovFromParam(model,type = .checkStructNames(struct[i]), sill = sill[i], range=range[i],param=param[i]) ## Ajouter un nugget de variance 1
+    err=Model_addCovFromParam(model,type = .checkStructNames(struct[i])[1][[1]], sill = sill[i], range=range[i],param=param[i]) ## Ajouter un nugget de variance 1
   }
   model$setMeans(mean)
   
