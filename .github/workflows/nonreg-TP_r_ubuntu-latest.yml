@@ -106,7 +106,7 @@ jobs:
       if: success() || failure()
       run: |
         cd ~/minigst_out
-        find . -type f \( -name "*.html" \) -print0 | tar -czvf TP-r-logs.tar.gz --null -T -
+        find . -type f \( -name "*.*" \) -print0 | tar -czvf TP-r-logs.tar.gz --null -T -
 
     - name: Publish output logs as artefact
       if: always()

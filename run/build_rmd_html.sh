@@ -19,7 +19,7 @@ do
   if [ "$fsc" != "TP/03_kriging_gstlearn.Rmd" ];
   then
     echo "  Processing $fsc"
-    R CMD BATCH --no-save --no-restore "--args $fsc $out_dir html" $runner
+    R CMD BATCH --no-save --no-restore "--args $fsc $out_dir R" $runner
     if [ $? -ne 0 ]
     then
       echo "  Error processing $fsc"
