@@ -27,6 +27,15 @@ do
       exit -1
     fi
     cat run_test_rmd.Rout
+    # Do the same with html files
+    R CMD BATCH --no-save --no-restore "--args $fsc $out_dir html" $runner
+    if [ $? -ne 0 ]
+    then
+      echo "  Error processing $fsc"
+      cat run_test_rmd.Rout
+      exit -1
+    fi
+    cat run_test_rmd.Rout
   fi
 done
 
