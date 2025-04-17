@@ -57,15 +57,15 @@
     varioParam=VarioParam()
     for(i in 1:ndir){
       if(angles){
-        direc=DirParam_create(angle2D = dir[i],nlag=nlag[i], dlag=dlag[i], toldis = toldis[i],tolang = tolang[i])
+        direc=DirParam_create(angle2D = dir[i],npas=nlag[i], dpas=dlag[i], toldis = toldis[i],tolang = tolang[i])
       }else{
-        direc=DirParam_create(codir = dir[i,],nlag=nlag[i], dlag=dlag[i], toldis = toldis[i],tolang = tolang[i])
+        direc=DirParam_create(codir = dir[i,],npas=nlag[i], dpas=dlag[i], toldis = toldis[i],tolang = tolang[i])
       }
       varioParam$addDir(direc)
     }
     
   }else{
-    varioParam = VarioParam_createOmniDirection(nlag=nlag, dlag=dlag, toldis = toldis)
+    varioParam = VarioParam_createOmniDirection(npas=nlag, dpas=dlag, toldis = toldis)
   }
   
   return(varioParam)
@@ -480,7 +480,7 @@ createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=
   }else{
     stop("Only values are possible for the argument mode: 'VG' to compute variogram values, and 'COV' to compute covariance values.")
   }
-  ndim=model$getNDim()
+  ndim=model$getDimensionNumber()
   if(!((length(x)==ndim)&&(length(y)==ndim))){
     stop("Wrong dimensions for coordinate vectors when evaluating the model.")
   }
@@ -531,7 +531,7 @@ createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=
 #'
 #'
 model_eval<-function(x=NULL,y=NULL,h=NULL,dir=NULL, model=createModel(),mode="COV"){
-  ndim=model$getNDim()
+  ndim=model$getDimensionNumber()
   res=NULL
   if((!is.null(x))&&(!is.null(y))){
     if(!((ncol(x)==ndim)&&(ncol(y)==ndim)&&(nrow(x)==nrow(y)))){
@@ -588,7 +588,7 @@ model_eval<-function(x=NULL,y=NULL,h=NULL,dir=NULL, model=createModel(),mode="CO
 #'
 model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
   
-  ndim=model$getNDim()
+  ndim=model$getDimensionNumber()
   if(ncol(x)<ndim){
     stop(paste0("The number of columns of x should be the same as the space dimension of model (",ndim,")"))
   }
@@ -661,8 +661,8 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
 #'
 #'
 model_getStructNames<-function(model){
-  nbStruct=model$getNCov()
-  nbVar= model$getNVar()
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
   names=NULL
   for(i in 1:nbStruct){
     names=c(names,model$getCova(i-1)$getCovName())
@@ -676,8 +676,8 @@ model_getStructNames<-function(model){
 #' @export
 #'
 model_getRanges<-function(model){
-  nbStruct=model$getNCov()
-  nbVar= model$getNVar()
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
   ranges=NULL
   for(i in 1:nbStruct){
     ranges=rbind(ranges,model$getCova(i-1)$getRanges())
@@ -698,8 +698,8 @@ model_getRanges<-function(model){
 #' @export
 #'
 model_getScales<-function(model){
-  nbStruct=model$getNCov()
-  nbVar= model$getNVar()
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
   scales=NULL
   for(i in 1:nbStruct){
     scales=rbind(scales,model$getCova(i-1)$getScales())
@@ -720,8 +720,8 @@ model_getScales<-function(model){
 #' @export
 #'
 model_getSills<-function(model){
-  nbStruct=model$getNCov()
-  nbVar= model$getNVar()
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
   sills=array(0,dim=c(nbVar,nbVar,nbStruct))
   for(i in 1:nbStruct){
     sills[,,i]=CovAniso_getSill__SWIG_0(model$getCova(i-1))$toTL()
@@ -737,8 +737,8 @@ model_getSills<-function(model){
 #' @export
 #'
 model_getAnisoAngles<-function(model){
-  nbStruct=model$getNCov()
-  nbVar= model$getNVar()
+  nbStruct=model$getCovaNumber()
+  nbVar= model$getVariableNumber()
   angles=NULL
   for(i in 1:nbStruct){
     angles=rbind(angles,CovAniso_getAnisoAngles__SWIG_0(model$getCova(i-1)))
@@ -760,7 +760,7 @@ model_getAnisoAngles<-function(model){
   err = mdl$delAllDrifts()
   ## Check if model is coherent with supplied polynomial drift
   if(!is.null(polDrift)){
-    ndim=Model_getNDim(mdl)
+    ndim=Model_getDimensionNumber(mdl)
     if(polDrift>=0){
       err = mdl$addDrift(DriftM())
     }

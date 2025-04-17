@@ -569,8 +569,8 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
                      nlag = 100, hmax = NA,
                      color=NULL, title="", legend=TRUE, ...){
 
-  nvar=expvario$getNVar()
-  ndir=expvario$getNDir()
+  nvar=expvario$getVariableNumber()
+  ndir=expvario$getDimensionNumber(0)
   if(ivar<(-1) || ivar >= nvar){
     stop(
       paste0("The index 'ivar' should be between -1 and ",nvar-1,".")
@@ -682,8 +682,8 @@ plot_vario<-function(expvario=NA,
                      nlag = 100, hmax = NA,
                      color=NULL, title="", legend=TRUE){
 
-  nvar=expvario$getNVar()
-  ndir=expvario$getNDir()
+  nvar=expvario$getVariableNumber()
+  ndir=expvario$getDimensionNumber(0)
   if(ivar<(-1) || ivar >= nvar){
     stop(
       paste0("The index 'ivar' should be between -1 and ",nvar-1,".")
