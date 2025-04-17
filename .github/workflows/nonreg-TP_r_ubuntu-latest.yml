@@ -58,7 +58,7 @@ jobs:
     - name: Install gstlearn
       run: |
         Rscript -e "install.packages ('gstlearn',
-            repos='https://soft.mines-paristech.fr/cran)"
+            repos='https://soft.mines-paristech.fr/cran')"
 
     - name: Install minigst
       run: |
