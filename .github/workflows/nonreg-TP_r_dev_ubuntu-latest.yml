@@ -3,16 +3,17 @@ name: nonreg-TP_r_dev_ubuntu-latest
 on:
   # Permit calling the workflow from outside (https://github.com/actions/runner/discussions/1884)
   workflow_call:
-   # Activate the workflow at each push on main branch
-  # push:
-  #   branches: [ main ]
+  # Activate the workflow at each push on main branch
+  push:
+    branches: [ dev ]
   # # Activate the workflow at each pull request on main branch
   # pull_request:
   #   branches: [ main ]
-  # # Activate the workflow every day at 23:30 UTC = for Paris 00:30 (summer) or 01:30 (winter)
-  # schedule:
-  #   # * is a special character in YAML so you have to quote the string
-  #   - cron:  '30 23 * * *'
+  # Activate the workflow every day at 23:30 UTC = for Paris 00:30 (summer) or 01:30 (winter)
+  schedule:
+    branches: [ dev ]
+    # * is a special character in YAML so you have to quote the string
+    - cron:  '30 23 * * *'
   # Permit manual trigger
   workflow_dispatch:
     inputs:
@@ -24,7 +25,7 @@ on:
 env:
   CMAKE_BUILD_TYPE : Release
   BUILD_DIR : build
-  R_VERSION : "4.3.2"
+  R_VERSION : "4.5.0"
   GSTLEARN_ROOT : ${{github.workspace}}/gstlearn
   SWIG_ROOT : ${{github.workspace}}/swig
 
@@ -106,11 +107,11 @@ jobs:
       if: success() || failure()
       run: |
         cd ~/minigst_out
-        find . -type f \( -name "*.*" \) -print0 | tar -czvf TP-r-logs.tar.gz --null -T -
+        find . -type f \( -name "*.*" \) -print0 | tar -czvf TP-r-logs_dev.tar.gz --null -T -
 
     - name: Publish output logs as artefact
       if: always()
       uses: actions/upload-artifact@v4
       with:
         name: TP-r-logs
-        path: ~/minigst_out/TP-r-logs.tar.gz
+        path: ~/minigst_out/TP-r-logs_dev.tar.gz

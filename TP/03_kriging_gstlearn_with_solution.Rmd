@@ -103,7 +103,7 @@ Let us extract the scale and sill parameters of the variogram we just fitted on 
 ## Extract scale
 model_scale = model_getScales(model_iso)[1]
 ## Extract sill
-model_sill = model_iso$getSill(0,0,0)
+model_sill = model_getSills(model_iso)[1,1,1]
 ```
 
 2. Implement a function to evaluate for a given lag the covariance of the model we just fitted on the data (using the parameters `model_scale` and `model_sill` extracted above).
