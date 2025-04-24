@@ -67,7 +67,7 @@ jobs:
             'rmarkdown',
             'sp',
             'fields',
-            'geoR',
+            'geoR'),
             repos='https://cloud.r-project.org/')"
 
     - name: Install the customized SWIG from source
