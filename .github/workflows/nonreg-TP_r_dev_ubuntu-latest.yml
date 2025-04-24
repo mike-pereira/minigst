@@ -61,12 +61,13 @@ jobs:
         Rscript -e "install.packages (
           c('ggplot2', 
             'ggpubr', 
+            'ggnewscale',
             'knitr',
+            'callr',
             'rmarkdown',
             'sp',
             'fields',
             'geoR',
-            'ggnewscale'),
             repos='https://cloud.r-project.org/')"
 
     - name: Install the customized SWIG from source

@@ -665,7 +665,7 @@ model_getStructNames<-function(model){
   nbVar= model$getNVar()
   names=NULL
   for(i in 1:nbStruct){
-    names=c(names,model$getCova(i-1)$getCovName())
+    names=c(names,model$getCovAniso(i-1)$getCovName())
   }
   return(names)
 }
@@ -680,7 +680,7 @@ model_getRanges<-function(model){
   nbVar= model$getNVar()
   ranges=NULL
   for(i in 1:nbStruct){
-    ranges=rbind(ranges,model$getCova(i-1)$getRanges())
+    ranges=rbind(ranges,model$getCovAniso(i-1)$getRanges())
   }
   rownames(ranges)=model_getStructNames(model)
   
@@ -702,7 +702,7 @@ model_getScales<-function(model){
   nbVar= model$getNVar()
   scales=NULL
   for(i in 1:nbStruct){
-    scales=rbind(scales,model$getCova(i-1)$getScales())
+    scales=rbind(scales,model$getCovAniso(i-1)$getScales())
   }
   rownames(scales)=model_getStructNames(model)
   
@@ -724,7 +724,7 @@ model_getSills<-function(model){
   nbVar= model$getNVar()
   sills=array(0,dim=c(nbVar,nbVar,nbStruct))
   for(i in 1:nbStruct){
-    sills[,,i]=CovAniso_getSill__SWIG_0(model$getCova(i-1))$toTL()
+    sills[,,i]=model$getSills(i-1)$toTL()
   }
   dimnames(sills)[[3]]=model_getStructNames(model)
   
@@ -741,7 +741,7 @@ model_getAnisoAngles<-function(model){
   nbVar= model$getNVar()
   angles=NULL
   for(i in 1:nbStruct){
-    angles=rbind(angles,CovAniso_getAnisoAngles__SWIG_0(model$getCova(i-1)))
+    angles=rbind(angles,model$getCovAniso(i-1)$getAnisoAngles())
   }
   rownames(angles)=model_getStructNames(model)
   
