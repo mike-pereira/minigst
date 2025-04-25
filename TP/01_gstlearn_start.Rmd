@@ -8,9 +8,9 @@ output:
     toc: true
   pdf_document:
     toc: true
+editor_options: 
+  chunk_output_type: console
 ---
-
-
 
 ## Introduction
 
@@ -148,7 +148,6 @@ dbplot_point(db=db,size="Elevation",color="Longitude")
 # Store the plot, and then display it
 plt=dbplot_point(db=db,size="Elevation",color="Longitude")
 print(plt)
-
 ```
 You can add points and lines to a **minigst** plot using the `addPoints` and `addLines` functions.
 ```{r}
@@ -208,6 +207,7 @@ dbplot_grid(dbG,color="Elevation",cmap = "RdBu")
 dbplot_grid(dbG,contour="Elevation",cmap = "RdBu",nLevels = 15)
 
 ```
+
 As before, you can add lines, points and even plots of additional Db objects into a single plot.
 
 ```{r}
@@ -255,7 +255,6 @@ clearSel(dbG)
 ## Display Db (after removing the selection)
 dbG
 dbplot_grid(dbG,color="Longitude")
-
 
 ```
 

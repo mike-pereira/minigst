@@ -6,13 +6,14 @@
   pdf_document:
   number_sections: yes
   toc: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 library(minigst)
-
 ```
 
 # Preamble
@@ -37,10 +38,6 @@ Comments on the dataset (from <https://www.rdocumentation.org/packages/sp/versio
 
 ## Visualizing heavy metal concentrations
 
-```{r setting_asp}
-OptCst_defineByKey("ASP",0) # Fix the aspect ratio in all future plots
-```
-
 1.  Create a gstlearn `database` called `data` from the `meuse` dataset. Don't forget to set the correct variables (`x` and `y`) as coordinates! Also, add the log concentrations of `cadmium`, `copper`, `lead` and `zinc` to the resulting `database`, under the names `log_cadmium`, `log_copper`, `log_lead` and `log_zinc`. *(Hint: Use the functions `dfToDb` and `addVarToDb`)*
 
 ```{r loading_in_Db}
@@ -57,8 +54,6 @@ addVarToDb(data,var=log(meuse[,var_name]),vname = paste0("log_",var_name))
 2.  Plot each heavy metal (log)concentration. *(Hint: Use the function `db_plot_point`)*
 
 ```{r base_maps}
-
-
 dbplot_point(data,size="log_cadmium",sizeRange = c(0.1,3), pointColor = "red",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium")
 
@@ -346,7 +341,7 @@ We can also adapt the size of experimental variogram points in the plot so that 
 
 ```{r vario_omni_plot_continued}
 p1 = plot_vario(varioexp,pairDisplay = "label")
-p2 =  plot_vario(varioexp,pairDisplay = "size")
+p2 = plot_vario(varioexp,pairDisplay = "size")
 ggarrange(p1, p2, nrow = 1, ncol  = 2)
 
 ```
@@ -364,9 +359,7 @@ for (ilag in seq(lag_vario)) {
   plt=plot_vario(varioexp,pairDisplay = "size",color = col_vario[ilag],
                  title=paste("lag=",lag,"",sep=""))
   print(plt)
-
 }
-
 ```
 
 ## Experimental variogram (anisotropic)
@@ -410,8 +403,6 @@ In the following example, we create an experimental variogram in the $4$ directi
 vario.4dir = vario_exp(data,vname="log_cadmium",dir=c(0,45,90,135),nlag=20, dlag=100.)
 
 plot_vario(vario.4dir,pairDisplay = "size")
-
-
 ```
 
 ```{r Directional_Variograms_2directions}
@@ -420,7 +411,7 @@ vario.2dir = vario_exp(data,vname="log_cadmium",dir=c(45,135),nlag=20, dlag=100.
 
 plot_vario(vario.2dir)
 
-# ggplot() + plot.varmod(vario.2dir) + plot.decoration(title="Directionnal variogram for cadmium (45, 135)")
+# plot.init() + plot.varmod(vario.2dir) + plot.decoration(title="Directionnal variogram for cadmium (45, 135)")
 ```
 
 ## Model adjustement
@@ -521,8 +512,6 @@ plot_vario(vario_iso4var)
 vario_aniso4var = vario_exp(data,vname=variable_names,dir=c(0,45,90,135),nlag=20, dlag=100.)
 dev.new() # Open new window
 plot_vario(vario_aniso4var)
-
-
 ```
 
 2.  Adjust a model (try several options) using the function `model_fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
@@ -539,11 +528,9 @@ model_iso4var$display()
 dev.new()
 plot_vario(vario_iso4var, model_iso4var)
 
-
 # selection of the variables
 ivar = 1
 jvar = 3
-
 
 p1 = plot_vario(vario_iso4var, model_iso4var, ivar = ivar, jvar = ivar,
                 title = paste0(variable_names[1+ivar], "-", variable_names[1+ivar]))
@@ -554,8 +541,6 @@ p3 = plot_vario(vario_iso4var, model_iso4var, ivar = jvar, jvar = jvar,
 
 dev.new()
 ggarrange(p1, p2, p3, ncol = 3, nrow = 1,legend = "bottom",common.legend = TRUE)
-
-
 ```
 
 ```{r model_4var_aniso, echo=TRUE, eval=TRUE}
@@ -582,6 +567,4 @@ p3 = plot_vario(vario_aniso4var, model_aniso4var, ivar = jvar, jvar = jvar,
 
 dev.new()
 ggarrange(p1, p2, p3, ncol = 3, nrow = 1,legend = "bottom",common.legend = TRUE)
-
-
 ```

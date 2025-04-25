@@ -1,124 +1,3 @@
-#' Functions to create color scales from palettes
-#' @keywords internal
-#' 
-.defineColour <- function(palette, naColor="transparent", flagDiscrete=FALSE, limits=NULL,title=NA)
-{
-  rcb <- c("Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "Oranges", "OrRd", "PuBu",
-           "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd",
-           "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3",
-           "BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral")
-  v <- c("magma", "inferno", "plasma", "viridis", "cividis", "rocket", "mako", "turbo",
-         "A", "B", "C", "D", "E", "F", "G", "H")
-  rcb_num <- 1:18
-  
-  aes_list = c("color")
-  
-  name=waiver()
-  if(!is.na(title)){
-    if(is.character(title)){
-      name=title
-    }
-  }
-  
-  if (flagDiscrete)
-  {
-    layer = scale_colour_manual(name="colors", values= palette, aesthetics=aes_list,
-                                na.value = naColor,name=name)
-  }
-  else
-  {
-    if (length(palette) == 0)
-    {
-      layer = scale_colour_viridis_c(option="viridis", aesthetics=aes_list,
-                                     na.value = naColor, limits=limits,name=name)
-      # layer = scale_colour_gradient(na.value=naColor, aesthetics=aes_list, limits=limits)
-    }
-    else if(length(palette) == 1)
-    {
-      if (any(palette == rcb) | any(palette == rcb_num))
-      {
-        layer = scale_colour_distiller(palette=palette, aesthetics=aes_list,
-                                       na.value=naColor,name=name)
-      }
-      else if(any(palette == v))
-      {
-        layer = scale_colour_viridis_c(option=palette, aesthetics=aes_list,
-                                       na.value = naColor, limits=limits,name=name)
-      }else{
-        layer = scale_colour_viridis_c(option="viridis", aesthetics=aes_list,
-                                       na.value = naColor, limits=limits,name=name)
-      }
-    }
-    else
-    {
-      layer = scale_colour_gradientn(colours=palette, aesthetics=aes_list,
-                                     na.value=naColor, limits=limits,name=name)
-    }
-  }
-  return(layer)
-}
-
-#' Functions to create color scales from palettes
-#' @keywords internal
-#' 
-.defineFill <- function(palette, naColor="transparent", flagDiscrete=FALSE, limits=NULL,title=NA)
-{
-  
-  rcb <- c("Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "Oranges", "OrRd", "PuBu",
-           "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd",
-           "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3",
-           "BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral")
-  v <- c("magma", "inferno", "plasma", "viridis", "cividis", "rocket", "mako", "turbo",
-         "A", "B", "C", "D", "E", "F", "G", "H")
-  rcb_num <- 1:18
-  
-  aes_list = c("fill")
-  
-  name=waiver()
-  if(!is.na(title)){
-    if(is.character(title)){
-      name=title
-    }
-  }
-  
-  if (flagDiscrete)
-  {
-    layer = scale_fill_manual(values= palette, 
-                              na.value = naColor,name=name)
-  }
-  else
-  {
-    if (length(palette) == 0)
-    {
-      layer = scale_fill_viridis_c(option="viridis", aesthetics=aes_list,
-                                   na.value = naColor, limits=limits,name=name)
-      l#ayer = scale_fill_gradient(na.value=naColor, aesthetics=aes_list, limits=limits)
-    }
-    else if(length(palette) == 1)
-    {
-      if (any(palette == rcb) | any(palette == rcb_num))
-      {
-        layer = scale_fill_distiller(palette=palette, aesthetics=aes_list,
-                                     na.value=naColor, limits=limits,name=name)
-      }
-      else if(any(palette == v))
-      {
-        layer = scale_fill_viridis_c(option=palette, aesthetics=aes_list,
-                                     na.value = naColor, limits=limits,name=name)
-      }else{
-        layer = scale_fill_viridis_c(option="viridis", aesthetics=aes_list,
-                                     na.value = naColor, limits=limits,name=name)
-      }
-    }
-    else
-    {
-      layer = scale_fill_gradientn(colours=palette, aesthetics=aes_list,
-                                   na.value=naColor, limits=limits,name=name)
-    }
-  }
-  return(layer)
-}
-
 #' Function to create breaks (used to plot size legend in `dbplot_point`)
 #' @keywords internal
 #' 
@@ -127,33 +6,6 @@ getSeq<-function(v,n=4,nd=3){
   u=pretty(v,n)
   return(u)
 }
-
-#' Color palettes
-#'
-#' Print the list of predefined color palettes in \pkg{gstlearn}.
-#'
-#'
-#' @return Prints the list of color palette names and returns nothing.
-#'
-#' @export
-#'
-#' @examples
-#' library(minigst)
-#'
-#' # Print list of basic structures
-#' printAllPalettes()
-#'
-printAllPalettes<-function(){
-  rcb <- c("Blues", "BuGn", "BuPu", "GnBu", "Greens", "Greys", "Oranges", "OrRd", "PuBu",
-           "PuBuGn", "PuRd", "Purples", "RdPu", "Reds", "YlGn", "YlGnBu", "YlOrBr", "YlOrRd",
-           "Accent", "Dark2", "Paired", "Pastel1", "Pastel2", "Set1", "Set2", "Set3",
-           "BrBG", "PiYG", "PRGn", "PuOr", "RdBu", "RdGy", "RdYlBu", "RdYlGn", "Spectral")
-  v <- c("magma", "inferno", "plasma", "viridis", "cividis", "rocket", "mako", "turbo",
-         "A", "B", "C", "D", "E", "F", "G", "H")
-  print(c(rcb,v))
-}
-
-
 
 #' Plot variables in a Db
 #'
@@ -171,6 +23,7 @@ printAllPalettes<-function(){
 #' @param absSize Whether the absolute value of the variable should be used to define the size of the points.
 #' @param hideLegend Whether to hide the legend.
 #' @param legendTitle Title(s) of the legend: either a single string if just the color or the size if plotted, or a vector containing respectively the title of the color legende and the title of the size legend. Setting the legend title to `NA` means that the name of the variable is used as a title.
+#' @param asp Aspect ratio of the plot: 0 = No scaling of the axes, 1 = Axes have the same scale.
 #' @param xlab Title of the x-axis.
 #' @param ylab Title of the y-axis.
 #' @param title Title of plot.
@@ -199,19 +52,19 @@ printAllPalettes<-function(){
 #' print(plt)
 #'
 dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
-                      cmap=NULL,colValLimits=NULL,naColor="transparent",pointColor="black",
+                       cmap=NULL,colValLimits=NULL,naColor="transparent",pointColor="black",
                        sizeRange=c(0.5,3),absSize=FALSE,
                        hideLegend=FALSE, legendTitle=NA,
-                        xlab = NULL, ylab = NULL, title = NULL, add = FALSE){
+                       asp = 0, xlab = NULL, ylab = NULL, title = NULL, add = FALSE){
   
 
   .checkVariableNames(db,c(color,cat_color,size))
   
   if(is.logical(add)){
-    if(add){
+    if(add){ 
       p = last_plot()
     }else{
-      p=ggDefaultGeographic()
+      p = plot.init()
     }
   }else{
     p = add
@@ -250,13 +103,8 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
   
   if(!is.null(color)||!is.null(cat_color)){
     colorLegendTitle=legendTitle[1]
-    if(!is.null(cmap)){
-      p = p+new_scale("colour")
-      p =p + .defineColour(cmap,flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = colorLegendTitle)
-    }else{
-      p = p+new_scale("colour")
-      p =p + .defineColour("viridis",flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = colorLegendTitle)
-    }
+    p = p + .defineColour(cmap,flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = colorLegendTitle)
+    p = p + new_scale("colour")
   }
   
   if(!is.null(size)){
@@ -294,7 +142,7 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
     p=p+geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
   }
   
-  
+  p = p + plot.geometry(asp=asp)
   if(is.null(xlab)){
     xlab=xname[1]
   }
@@ -451,9 +299,8 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
                        cmap=NULL,colValLimits=NULL,naColor="transparent",
                        nLevels=NULL,
                        hideLegend=FALSE, legendTitle=NA,
-                       asp=0,xlab = NULL, ylab = NULL, title = NULL, add = FALSE
-){
-  
+                       asp=0, xlab = NULL, ylab = NULL, title = NULL, add = FALSE)
+{
   if((!is.null(color))+(!is.null(cat_color))+(!is.null(contour))>1){
     stop("You must specify only one of the following arguments: color, cat_color, contour")
   }
@@ -463,7 +310,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
     if(add){
       p = last_plot()
     }else{
-      p=ggDefaultGeographic()
+      p = plot.init()
     }
   }else{
     p = add
@@ -506,34 +353,23 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   }
   
   if(!is.null(color)||!is.null(cat_color)){
-    p=p+geom_raster(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA)) 
-    if(!is.null(cmap)){
-      p =p + .defineFill(cmap,flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = legendTitle)
-      p = p+new_scale("fill")
-    }else{
-      p =p + .defineFill("viridis",flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = legendTitle)
-      p = p+new_scale("fill")
-    }
+    p = p + geom_raster(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA)) 
+    p = p + .defineFill(cmap,flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = legendTitle)
+    p = p + new_scale("fill")
   }else if(!is.null(contour)){
-    p=p+geom_contour(data=df,
+    p = p + geom_contour(data=df,
                      aes(x=.data[[xname[1]]],y=.data[[xname[2]]],
                          z=.data[[contour]],colour=after_stat(level)
                      ),
                      bins = nLevels,
                      na.rm=TRUE,show.legend=ifelse(hideLegend,FALSE,NA))
-    if(!is.null(cmap)){
-      p =p + .defineColour(cmap,title = legendTitle)
-      p = p+new_scale("colour")
-    }else{
-      p =p + .defineColour("viridis",title = legendTitle)
-      p = p+new_scale("colour")
-    }
+    p = p + .defineColour(cmap,title = legendTitle)
+    p = p + new_scale("colour")
   }else{
     stop("You must specify one of the following arguments: color, cat_color, contour")
   }
   
-  
-  p=p+plot.geometry(asp=asp)
+  p = p + plot.geometry(asp=asp)
   if(is.null(xlab)){
     xlab=xname0[1]
   }
@@ -546,11 +382,8 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
     p=p+plot.decoration(xlab = xlab, ylab = ylab, title = title)
   }
   
-  
   return(p)
-  
 }
-
 
 
 #------------------------------------------------------------
@@ -598,7 +431,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
     drawPlabel=F
   }
 
-  p=ggplot()
+  p = plot.init()
   if(is.null(color)){
     p=p+suppressWarnings(plot.varmod(vario=expvario,model=model,nh=nlag,hmax=hmax,drawPsize = drawPsize,
                     ivar=ivar, jvar=jvar, idir=idir,
@@ -723,7 +556,7 @@ plot_vario<-function(expvario=NA,
                                       legend = T))
             pl[[k]]=as_ggplot(leg)
           }else{
-            pl[[k]]=ggplot()+theme(
+            pl[[k]]=plot.init()+theme(
               panel.background = element_rect(fill='transparent'), #transparent panel bg
               plot.background = element_rect(fill='transparent', color=NA), #transparent plot bg
               panel.grid.major = element_blank(), #remove major gridlines
@@ -821,7 +654,7 @@ plot_vario<-function(expvario=NA,
 #'
 #' 
 plot_hist<-function (db,vname,color = "blue",nbin=30, title=NULL,xlab=NULL){
-  p = ggplot()
+  p = plot.init()
   p = p + plot.hist(db,name=vname,bins = nbin,fill=color)
   p = p + plot.decoration(xlab=xlab, title=title)
   return(p)
@@ -859,18 +692,18 @@ plot_scatter<-function (db,vnamex,vnamey,
                         regrLine=FALSE, regrLineColor = "blue", regrLineType = "solid",regrLineWidth = 1.25,
                         eqLine=FALSE, eqLineColor = "red", eqLineType = "dashed", eqLineWidth = 1.25,
                         verbose=TRUE){
-  p = ggplot()
+  p = plot.init()
   
   res = correlationPairs(db, db, vnamex, vnamey)
   x = db$getValuesByNames(res[[1]], vnamex)
   y = db$getValuesByNames(res[[2]], vnamey)
   
   if (asPoints)
-    p = p+ plot.XY(x, y, flagLine=FALSE, flagPoint=TRUE)
+    p = p + plot.XY(x, y, flagLine=FALSE, flagPoint=TRUE)
   else
-    p=p+geom_bin_2d(aes())
-    p =p+plot.hist2d(x, y,bins=nbins)
-    p=p+.defineFill(cmap)
+    p = p + geom_bin_2d(aes())
+    p = p + plot.hist2d(x, y,bins=nbins)
+    p = p +.defineFill(cmap)
 
   if (eqLine)
   {
@@ -896,9 +729,5 @@ plot_scatter<-function (db,vnamex,vnamey,
   p = p + plot.decoration(title=title, 
                           xlab=xlab, ylab=ylab)
   return(p)
-  
 }
-
-
-
 

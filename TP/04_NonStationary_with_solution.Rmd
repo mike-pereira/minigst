@@ -17,10 +17,7 @@ This practical requires all questions from the last two practicals (on variograp
 
 ```{r}
 rm(list=ls()) #Clean the working directory
-
 library(minigst)
-OptCst_defineByKey("ASP",0)
-
 ```
 
 
@@ -103,7 +100,6 @@ When performing universal kriging, we need to fit a model on the residuals
 # Fitting the model
 struct_names=c("NUGGET","EXPONENTIAL")
 model_drift=model_fit(varioexp_res,extDrift = 'dist.m',struct=struct_names)
-
 ```
 
 ```{r}
@@ -135,7 +131,6 @@ p1=dbplot_grid(target, color='UK.log_cadmium.estim',title='Universal Kriging: Pr
 p2=dbplot_grid(target, color='UK.log_cadmium.stdev',title='Universal Kriging: Std-Dev',legendTitle = "Value")
 ## Side by side plot
 ggarrange(p1,p2,nrow = 1)
-
 ```
 
 ## Cross-validation
@@ -188,6 +183,7 @@ plot_scatter(target,vnamex="OK.log_cadmium.estim",vnamey="UK.log_cadmium.estim",
               title="Kriging predictions: Ordinary vs, Universal", xlab="Ordinary Kriging", ylab="Universal Kriging",
              eqLine = TRUE)
 ```
+
 ```{r}
 ## Perform cross-validation analysis on the ordinary kriging predictor (use the prefix "Xvalid_OK")
 minixvalid(data,vname = "log_cadmium", type="ordinary",
@@ -248,7 +244,6 @@ $$Cd(x) = \mu(x) + Y(x)$$
 where $\mu(x)$ may vary according to the location, e.g. $\mu(x) = X(x)\beta$ with $X$ an explanatory variable.
 
 To do this, we use the **geoR** package. You may need to install it.
-
 
 **geoR** uses a particular class to store spatial data sets : **geodata** (similar to a gstlearn db). The first thing is hence to transform our data in that class.
 

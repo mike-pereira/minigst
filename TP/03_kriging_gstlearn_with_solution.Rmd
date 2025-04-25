@@ -7,10 +7,9 @@
   number_sections: yes
   toc: yes
   editor_options: 
-    chunk_output_type: inline
+    chunk_output_type: console
   chunk_output_type: inline
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -21,12 +20,6 @@ library(fields)
 ```
 
 # Preamble
-
-
-```{r loading_gstlearn}
-OptCst_defineByKey("ASP",0)
-```
-
 
 ## Loading the Meuse dataset
 
@@ -285,7 +278,6 @@ p2=dbplot_grid(targetDb, color='SK.log_cadmium.stdev',
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
-
 ```
 
 Finally, to assess the quality of the predictions, let us perform a 1-fold cross-validation analysis. The idea is as follows: for each observation location $x_i$, we compute the kriging prediction at $x_i$ using all the observations except the one located at $x_i$. The cross-validation error at $x_i$ is then defined as the difference between this prediction and the actual observed value at $x_i$ and measures how far away from the real value the prediction is. A standardized cross-validation error can also be defined as the ratio of the cross-validation error at $x_i$ and the kriging standard deviation at $x_i$, to account from the error inherent to the kriging prediction.
@@ -446,7 +438,8 @@ ggarrange(p1,p2,nrow=1)
 
 ```{r}
 ## Cross-validation for Ordinary kriging with moving neigborhood (Use the prefix "Xvalid_OK_mov")
-minixvalid(obsDb, vname = "log_cadmium", model=model_aniso, type = "ordinary", prefix="Xvalid_OK_mov", mean = mean_log_cadmium, neighborhood = "unique", std = TRUE)
+minixvalid(obsDb, vname = "log_cadmium", model=model_aniso, type = "ordinary", prefix="Xvalid_OK_mov", 
+           mean = mean_log_cadmium, neighborhood = "unique", std = TRUE)
 ```
 
 ```{r}
