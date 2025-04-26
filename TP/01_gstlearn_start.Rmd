@@ -143,7 +143,7 @@ You can plot the contents of a Db using function `dbplot_point` function (which 
 
 ```{r}
 # Plot the variables Elevation (for the size of the points) and Longitude (for the color of the points)
-dbplot_point(db=db,size="Elevation",color="Longitude")
+dbplot_point(db=db,size="Elevation",color="Longitude",cmap="viridis")
 
 # Store the plot, and then display it
 plt=dbplot_point(db=db,size="Elevation",color="Longitude")

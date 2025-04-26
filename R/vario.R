@@ -15,9 +15,7 @@
   }else{
     return(arg)
   }
-  
 }
-
 
 #' Function to create a gstlearn object containing the parameters needed to compute
 #' an experimental variogram.

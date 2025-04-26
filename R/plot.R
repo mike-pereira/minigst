@@ -55,9 +55,8 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
                        cmap=NULL,colValLimits=NULL,naColor="transparent",pointColor="black",
                        sizeRange=c(0.5,3),absSize=FALSE,
                        hideLegend=FALSE, legendTitle=NA,
-                       asp = 0, xlab = NULL, ylab = NULL, title = NULL, add = FALSE){
+                       asp = 1, xlab = NULL, ylab = NULL, title = NULL, add = FALSE){
   
-
   .checkVariableNames(db,c(color,cat_color,size))
   
   if(is.logical(add)){
@@ -77,7 +76,6 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
     selvec=(apply(as.matrix(df[selnames]),1,prod)==1)
     df=df[selvec,]
   }
-  
   
   aes_plt=aes(x=.data[[xname[1]]],y=.data[[xname[2]]])
   
@@ -101,10 +99,10 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
     }
   }
   
-  if(!is.null(color)||!is.null(cat_color)){
-    colorLegendTitle=legendTitle[1]
-    p = p + .defineColour(cmap,flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = colorLegendTitle)
-    p = p + new_scale("colour")
+  if(is.null(color)&&is.null(cat_color)){
+    p = p + geom_point(data=df,aes_plt,color=pointColor,show.legend=ifelse(hideLegend,FALSE,NA))
+  }else{
+    p = p + geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
   }
   
   if(!is.null(size)){
@@ -114,13 +112,7 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
     }else{
       sizeLegendTitle=legendTitle[1]
     }
-    name=waiver()
-    if(!is.na(sizeLegendTitle)){
-      if(is.character(sizeLegendTitle)){
-        name=sizeLegendTitle
-      }
-    }
-    
+    name = .defineName(sizeLegendTitle)
     
     id_not_NA=which(!is.na(df[,size]))
     df=df[id_not_NA,]
@@ -131,17 +123,17 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
       aes_plt$size = substitute(.data[[size]])
       valSize=df[,size]
     }
-    p = p+new_scale("size")
     breaks=getSeq(range(valSize,na.rm=TRUE))
-    p =p + scale_size(breaks = breaks,limits=range(breaks),range = sizeRange,name=name)
+    p = p + scale_size(breaks = breaks,limits=range(breaks),range = sizeRange,name=name)
+    p = p + new_scale("size")
   }
-  
-  if(is.null(color)&&is.null(cat_color)){
-    p=p+geom_point(data=df,aes_plt,color=pointColor,show.legend=ifelse(hideLegend,FALSE,NA))
-  }else{
-    p=p+geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
+
+  if(!is.null(color)||!is.null(cat_color)){
+    colorLegendTitle=legendTitle[1]
+    p = p + .defineColour(cmap,flagDiscrete=discreteVal,naColor = naColor,limits=colValLimits,title = colorLegendTitle)
+    p = p + new_scale("colour")
   }
-  
+
   p = p + plot.geometry(asp=asp)
   if(is.null(xlab)){
     xlab=xname[1]
@@ -150,16 +142,13 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
     ylab=xname[2]
   }
   if(is.null(title)){
-    p=p+plot.decoration(xlab = xlab, ylab = ylab,title = "")
+    p = p + plot.decoration(xlab = xlab, ylab = ylab, title = "")
   }else{
-    p=p+plot.decoration(xlab = xlab, ylab = ylab, title = title)
+    p = p + plot.decoration(xlab = xlab, ylab = ylab, title = title)
   }
-  
   
   return(p)
 }
-
-
 
 #' Add lines to an existing plot
 #'
@@ -299,7 +288,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
                        cmap=NULL,colValLimits=NULL,naColor="transparent",
                        nLevels=NULL,
                        hideLegend=FALSE, legendTitle=NA,
-                       asp=0, xlab = NULL, ylab = NULL, title = NULL, add = FALSE)
+                       asp = 1, xlab = NULL, ylab = NULL, title = NULL, add = FALSE)
 {
   if((!is.null(color))+(!is.null(cat_color))+(!is.null(contour))>1){
     stop("You must specify only one of the following arguments: color, cat_color, contour")
@@ -315,7 +304,6 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   }else{
     p = add
   }
-  
   
   df=db[]
   ## Extract name of coordinates
@@ -385,9 +373,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   return(p)
 }
 
-
 #------------------------------------------------------------
-
 
 #' Function to plot a single experimental variogram or cross-variogram and overlay a model on top.
 #'
