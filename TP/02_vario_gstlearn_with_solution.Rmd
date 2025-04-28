@@ -1,11 +1,14 @@
 ---
-  title: "Variography using (mini)gstlearn - Correction"
-  author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
-  date: "Option Géostatistique 2024"
-  output:
+title: "Variography using (mini)gstlearn - Correction"
+author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
+date: "Option Géostatistique 2024"
+output:
+  html_document:
+    df_print: paged
+    toc: true
   pdf_document:
-  number_sections: yes
-  toc: yes
+    toc: true
+    number_sections: yes
 editor_options: 
   chunk_output_type: console
 ---
