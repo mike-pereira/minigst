@@ -2,11 +2,14 @@
 title: "Non-stationary geostatistics using R/gstlearn"
 author: "Thomas Romary"
 date: "Option Géostatistique 2024"
-output: 
-    pdf_document:
-        number_sections: true
-        toc: true
-editor_options: 
+output:
+  html_document:
+    toc: yes
+    df_print: paged
+  pdf_document:
+    number_sections: yes
+    toc: yes
+editor_options:
   chunk_output_type: console
 ---
 
@@ -21,7 +24,6 @@ library(minigst)
 ```
 
 
-
 ## Loading the Meuse dataset
 
 ```{r loading_data_set}
@@ -30,7 +32,6 @@ data(meuse) # load data
 data(meuse.grid) # load target grid
 names(meuse.grid)[5]="dist.m" # change the name to concur with meuse
 ```
-
 
 Create the data Db
 

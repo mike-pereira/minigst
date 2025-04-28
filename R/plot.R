@@ -78,7 +78,15 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
   }
   
   aes_plt=aes(x=.data[[xname[1]]],y=.data[[xname[2]]])
-  
+    
+  if(!is.null(size)){
+    if(absSize){
+      aes_plt$size = substitute(abs(.data[[size]]))
+    }else{
+      aes_plt$size = substitute(.data[[size]])
+    }
+  }
+
   discreteVal=FALSE
   if(!is.null(color)){
     aes_plt$colour = substitute(.data[[color]])
@@ -98,7 +106,7 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
       }
     }
   }
-  
+
   if(is.null(color)&&is.null(cat_color)){
     p = p + geom_point(data=df,aes_plt,color=pointColor,show.legend=ifelse(hideLegend,FALSE,NA))
   }else{
@@ -117,13 +125,11 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
     id_not_NA=which(!is.na(df[,size]))
     df=df[id_not_NA,]
     if(absSize){
-      aes_plt$size = substitute(abs(.data[[size]]))
       valSize=abs(df[,size])
     }else{
-      aes_plt$size = substitute(.data[[size]])
       valSize=df[,size]
     }
-    breaks=getSeq(range(valSize,na.rm=TRUE))
+    breaks = getSeq(range(valSize,na.rm=TRUE))
     p = p + scale_size(breaks = breaks,limits=range(breaks),range = sizeRange,name=name)
     p = p + new_scale("size")
   }
@@ -428,11 +434,9 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
                     drawPlabel = drawPlabel,flagLegend = legend,flagEnvelop = F,color=color,...))
   }
 
-  p=p+plot.decoration(xlab = "Distance", ylab="Variogram",
-                      title=title)
+  p=p+plot.decoration(xlab = "Distance", ylab="Variogram", title=title)
   return(p)
 }
-
 
 .short_str <- function(str_vec,n=12) {
   res=NULL
@@ -448,7 +452,6 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
   }
   return(res)
 }
-
 
 #' Plot experimental variograms and cross-variograms.
 #'
