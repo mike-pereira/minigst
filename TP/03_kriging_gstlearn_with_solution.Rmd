@@ -1,16 +1,17 @@
 ---
-  title: "Kriging using (mini)gstlearn - Correction"
-  author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
-  date: "Option Géostatistique 2024"
-  output:
+title: "Kriging using (mini)gstlearn - Correction"
+author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
+date: "Option Géostatistique 2024"
+output:
+  html_document:
+    toc: true
+    df_print: paged
   pdf_document:
-  number_sections: yes
-  toc: yes
-  editor_options: 
-    chunk_output_type: inline
-  chunk_output_type: inline
+    number_sections: true
+    toc: true
+editor_options:
+  chunk_output_type: console
 ---
-
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -21,12 +22,6 @@ library(fields)
 ```
 
 # Preamble
-
-
-```{r loading_gstlearn}
-OptCst_defineByKey("ASP",0)
-```
-
 
 ## Loading the Meuse dataset
 
@@ -103,7 +98,7 @@ Let us extract the scale and sill parameters of the variogram we just fitted on 
 ## Extract scale
 model_scale = model_getScales(model_iso)[1]
 ## Extract sill
-model_sill = model_iso$getSill(0,0,0)
+model_sill = model_getSills(model_iso)[1,1,1]
 ```
 
 2. Implement a function to evaluate for a given lag the covariance of the model we just fitted on the data (using the parameters `model_scale` and `model_sill` extracted above).
@@ -285,7 +280,6 @@ p2=dbplot_grid(targetDb, color='SK.log_cadmium.stdev',
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
-
 ```
 
 Finally, to assess the quality of the predictions, let us perform a 1-fold cross-validation analysis. The idea is as follows: for each observation location $x_i$, we compute the kriging prediction at $x_i$ using all the observations except the one located at $x_i$. The cross-validation error at $x_i$ is then defined as the difference between this prediction and the actual observed value at $x_i$ and measures how far away from the real value the prediction is. A standardized cross-validation error can also be defined as the ratio of the cross-validation error at $x_i$ and the kriging standard deviation at $x_i$, to account from the error inherent to the kriging prediction.
@@ -306,7 +300,6 @@ plot_hist(obsDb,vname=xvalid_name,nbin=30,color="blue",xlab="Estimation Errors",
 print(c("Mean cross-validation error:",mean(obsDb[xvalid_name], na.rm=TRUE)))
 print(c("Mean squared cross-validation error:",mean(obsDb[xvalid_name]^2, na.rm=TRUE)))
 print(c("Mean squared standardized error:",mean(obsDb[xvalid_name]^2, na.rm=TRUE)))
-
 ```
 
 Finally, we plot the cross-validation errors on a map.
@@ -340,7 +333,6 @@ p2=dbplot_grid(targetDb, color='OK.log_cadmium.stdev',
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
-
 ```
 
 
@@ -364,7 +356,6 @@ print(c("Mean squared standardized error:",mean(obsDb[xvalid_name]^2, na.rm=TRUE
 
 ## Plot map of cross-validation errors
 dbplot_point(obsDb,color = xvalid_name, cmap="viridis")
-
 ```
 
 Let us now compare the predictions obtained using simple and ordinary kriging. To do so, we use represent both predictors in a scatter-plot using the function `plot_scatter`.
@@ -380,7 +371,6 @@ plot_scatter(targetDb,vnamex="OK.log_cadmium.estim",vnamey="SK.log_cadmium.estim
 plot_scatter(targetDb,vnamex="OK.log_cadmium.stdev",vnamey="SK.log_cadmium.stdev",
               title="Kriging standard-deviations: Estimation Simple vs. Ordinary", xlab="Ordinary Kriging", ylab="Simple Kriging",
              eqLine = TRUE)
-
 ```
 
 7. Compare the simple and ordinary kriging predictions and standard-deviations based on the cross-plots created above.
@@ -393,7 +383,6 @@ Up until now, we only considered kriging with a unique neighborhood. To work wit
 Note that it is also possible to set `neighborhood=radius` to use a neighborhood of radius `radius` without any restriction and the number of points it can contain, or to set `neighborhood=c(nmini, nmaxi)` to set a moving neighborhood containing between `nmini` and `nmaxi` points without any restriction of the radius.
 
 For instance, to design a small moving neighborhood containing between 2 and 10 points in  a radius of 150, we would specify the `neighborhood` argument as follows: `neighborhood = c(2,5, 150)`
-
 
 8. Compute an ordinary kriging prediction of the log-concentration of Cadmium on the points in `targetDb` using the data in `obsDb`, the model `model_aniso`, and a moving neighborhood containing between 2 and 5 points in a radius of 150. Use the prefix `OK_mov` to store the results in `targetDb` (while keeping the previous simple and ordinary kriging predictions).
 
@@ -419,11 +408,9 @@ p2 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.stdev',
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
-
 ```
 
 9. Comment the prediction maps obtained above.
-
 
 10. Compare the results obtained with a unique neighborhood and a moving neighborhood (`OK` and `OK_mov`) visually, and using a cross-validation and a scatter plot.
 
@@ -439,14 +426,13 @@ p2 = dbplot_grid(targetDb, color='OK_mov.log_cadmium.estim',title='Mov. Neigh. :
 
 ## Plot side-by-side
 ggarrange(p1,p2,nrow=1)
-
 ```
-
 
 
 ```{r}
 ## Cross-validation for Ordinary kriging with moving neigborhood (Use the prefix "Xvalid_OK_mov")
-minixvalid(obsDb, vname = "log_cadmium", model=model_aniso, type = "ordinary", prefix="Xvalid_OK_mov", mean = mean_log_cadmium, neighborhood = "unique", std = TRUE)
+minixvalid(obsDb, vname = "log_cadmium", model=model_aniso, type = "ordinary", prefix="Xvalid_OK_mov", 
+           mean = mean_log_cadmium, neighborhood = "unique", std = TRUE)
 ```
 
 ```{r}
@@ -460,8 +446,6 @@ print(c("Mean squared cross-validation error:",mean(obsDb[,xvalid_name]^2, na.rm
 
 ## Plot ordinary kriging prediction
 dbplot_point(obsDb,color = xvalid_name, cmap="viridis")
-
-
 ```
 
 ```{r}
@@ -477,11 +461,7 @@ p2=plot_scatter(targetDb,vnamex="OK.log_cadmium.stdev",vnamey="OK_mov.log_cadmiu
 print(ggarrange(p1,p2,nrow=1))
 ```
 
-
-
 11. Bonus question: try with other neighborhoods and compare the results.
-
-
 
 ## Change of model
 
@@ -498,9 +478,6 @@ model_aniso$display() ## look at the anisotropic matrices
 # plot of the experiment variogram and the fitted model
 plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
            title="Model adjustment for cadmium")
-
-## ....
-
 ```
 
 # Multivariate geostatistics
@@ -524,7 +501,6 @@ model_aniso4var=model_fit(vario_aniso4var,struct=struct_names)
 # Display and plot
 model_aniso4var$display()
 plot_vario(vario_aniso4var, model_aniso4var)
-
 ```
 
 
@@ -538,7 +514,6 @@ If such arguments are supplied to the `minikriging` function, then it computes t
 minikriging(obsDb, targetDb, vname = variable_names, model = model_aniso4var, 
             type = "ordinary", prefix = "COK", neighborhood = "unique", 
             std = TRUE)
-
 ```
 
 
@@ -564,7 +539,6 @@ p2=dbplot_grid(targetDb,color = 'COK.log_copper.stdev',
                title='Cokriging Log copper: Std-dev',legendTitle = "", cmap="RdBu")
 ## Plot side by side
 ggarrange(p1,p2,nrow = 1)
-
 ```
 
 
@@ -577,7 +551,6 @@ p2=dbplot_grid(targetDb,color = 'COK.log_lead.stdev',
                title='Cokriging Log lead: Std-dev',legendTitle = "", cmap="RdBu")
 ## Plot side by side
 ggarrange(p1,p2,nrow = 1)
-
 ```
 
 ```{r}
@@ -589,7 +562,6 @@ p2=dbplot_grid(targetDb,color = 'COK.log_zinc.stdev',
                title='Cokriging Log zinc: Std-dev',legendTitle = "", cmap="RdBu")
 ## Plot side by side
 ggarrange(p1,p2,nrow = 1)
-
 ```
 
 ## Comparaison OK / CoKriging
@@ -603,7 +575,6 @@ plot_scatter(targetDb,vnamex="OK.log_cadmium.estim",vnamey="COK.log_cadmium.esti
 ## Scatter plot CoKriging VS Ordinary Kriging: Standard deviations
 plot_scatter(targetDb,vnamex="OK.log_cadmium.stdev",vnamey="COK.log_cadmium.stdev", title="Standard deviation CoKriging vs. Ordinary", 
                     xlab="OK", ylab="COK",eqLine=TRUE)
-
 ```
 
 

@@ -1,18 +1,22 @@
 ---
-  title: "Variography using (mini)gstlearn - Correction"
-  author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
-  date: "Option Géostatistique 2024"
-  output:
+title: "Variography using (mini)gstlearn - Correction"
+author: "Emilie Chautru, Mike Pereira, and Thomas Romary"
+date: "Option Géostatistique 2024"
+output:
+  html_document:
+    df_print: paged
+    toc: true
   pdf_document:
-  number_sections: yes
-  toc: yes
+    toc: true
+    number_sections: yes
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup}
 knitr::opts_chunk$set(echo = TRUE)
 rm(list=ls())
 library(minigst)
-
 ```
 
 # Preamble
@@ -37,10 +41,6 @@ Comments on the dataset (from <https://www.rdocumentation.org/packages/sp/versio
 
 ## Visualizing heavy metal concentrations
 
-```{r setting_asp}
-OptCst_defineByKey("ASP",0) # Fix the aspect ratio in all future plots
-```
-
 1.  Create a gstlearn `database` called `data` from the `meuse` dataset. Don't forget to set the correct variables (`x` and `y`) as coordinates! Also, add the log concentrations of `cadmium`, `copper`, `lead` and `zinc` to the resulting `database`, under the names `log_cadmium`, `log_copper`, `log_lead` and `log_zinc`. *(Hint: Use the functions `dfToDb` and `addVarToDb`)*
 
 ```{r loading_in_Db}
@@ -51,14 +51,11 @@ data = dfToDb(meuse,coordnames = c("x","y"))
 ## Add log concentrations
 var_name = c( "cadmium", "copper", "lead", "zinc")
 addVarToDb(data,var=log(meuse[,var_name]),vname = paste0("log_",var_name))
-
 ```
 
 2.  Plot each heavy metal (log)concentration. *(Hint: Use the function `db_plot_point`)*
 
 ```{r base_maps}
-
-
 dbplot_point(data,size="log_cadmium",sizeRange = c(0.1,3), pointColor = "red",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium")
 
@@ -70,7 +67,6 @@ dbplot_point(data,size="log_lead",sizeRange = c(0.1,3), pointColor = "blue",
 
 dbplot_point(data,size="log_zinc",sizeRange = c(0.1,3), pointColor = "darkgreen",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Zinc")
-
 ```
 
 3.  Compute basic statistics of each heavy metal (log)concentration. *(Hint: Use the function `summaryStats`)*
@@ -82,8 +78,6 @@ print(summaryStats(data,vname = c("cadmium","copper","lead","zinc")))
 
 # Statistics on the log-variables
 print(summaryStats(data,vname = paste0("log_", c("cadmium","copper","lead","zinc"))))
-
-
 ```
 
 
@@ -111,10 +105,7 @@ clearSel(data)
 plt=dbplot_point(data,size="log_cadmium", pointColor = "orange",
              xlab = "Easting (m)", ylab = "Northing (m)", title = "Cadmium")
 print(plt)
-
-
 ```
-
 
 4.  Fit the regression line of the coordinates **y** as a function of the coordinates **x**. Compare the basic statistics of each heavy metal concentration above and below the regression line. *(Hint: Use the functions `lm`, `addSel`, and `summaryStats`)*
 
@@ -197,7 +188,8 @@ vario = 1/2*outer(dat[,"log_cadmium"],dat[,"log_cadmium"],"-")^2
 2.  Plot the variogram cloud for the cadmium concentration, and eventually for the other metals. *(Hint: Use the function `plot`)*
 
 ```{r R_variogram_cloud_plot, echo=TRUE, eval=TRUE}
-plot(dist_mat,vario,cex=.25,xlab="Distance[m]",ylab=" ",main="Variogram cloud for cadmium",pch=19)
+plot(dist_mat,vario,cex=.25,xlab="Distance[m]",ylab=" ",
+     main="Variogram cloud for cadmium",pch=19)
 ```
 
 ## Experimental variogram (omnidirectional)
@@ -227,7 +219,6 @@ for (i in seq(lags)){
 gg = gg[1:20]
 hh = hh[1:20]
 npairs = npairs[1:20]
-
 ```
 
 2.  Plot the experimental variogram for the cadmium concentration and display the number of pairs used to compute each point of the variogram. *(Hint: Use the functions `plot` and `text`)*
@@ -300,7 +291,6 @@ legend("bottomright",
 # display the optimized parameters
 m 
 theta_optim
-
 ```
 
 # Variography using *gstlearn*
@@ -319,7 +309,7 @@ grid.cloud = vario_cloud(data,vname = "log_cadmium")
 grid.cloud$display()
 
 ## Plot variogram cloud
-dbplot_grid(grid.cloud,color="Cloud.log_cadmium",legendTitle="Nb of pairs")
+dbplot_grid(grid.cloud,color="Cloud.log_cadmium",legendTitle="Nb of pairs", asp=0)
 
 ```
 
@@ -331,24 +321,20 @@ For one metal concentration, compute and plot the experimental variogram. Try di
 
 varioexp=vario_exp(data,vname="log_cadmium",nlag=20, dlag=100, toldis = 0.5)
 varioexp
-
 ```
 
 We now plot the experimental variogram. In the resulting figure, the experimental variogram is plotted in blue, and the dashed blacked line corresponds to the value of the variance of the data.
 
 ```{r vario_omni_plot}
-
 plot_vario(varioexp,pairDisplay = "size")
-
 ```
 
 We can also adapt the size of experimental variogram points in the plot so that it is proportional to the number of pairs of points used to compute the value.
 
 ```{r vario_omni_plot_continued}
 p1 = plot_vario(varioexp,pairDisplay = "label")
-p2 =  plot_vario(varioexp,pairDisplay = "size")
+p2 = plot_vario(varioexp,pairDisplay = "size")
 ggarrange(p1, p2, nrow = 1, ncol  = 2)
-
 ```
 
 Trying different lags
@@ -364,9 +350,7 @@ for (ilag in seq(lag_vario)) {
   plt=plot_vario(varioexp,pairDisplay = "size",color = col_vario[ilag],
                  title=paste("lag=",lag,"",sep=""))
   print(plt)
-
 }
-
 ```
 
 ## Experimental variogram (anisotropic)
@@ -384,16 +368,15 @@ vname="log_cadmium"
 
 vn1=grid.vmap$getNames("VMAP.*.Var")[1]
 p1=dbplot_grid(grid.vmap,color= vn1,cmap="Spectral",
-               legendTitle ="Var",
+               legendTitle ="Var", asp=0,
                title = paste0("Variogram map : ",vname))
 
 vn2=grid.vmap$getNames("VMAP.*.Nb")[1]
 p2=dbplot_grid(grid.vmap,color=vn2,cmap="RdBu",
-               legendTitle ="Nb",
+               legendTitle ="Nb", asp=0,
                title = "Number of pairs")
 
 print(ggarrange(p1,p2,nrow=1,ncol=2, common.legend = FALSE))
-
 ```
 
 2.  Compute and plot directional variograms.
@@ -410,17 +393,13 @@ In the following example, we create an experimental variogram in the $4$ directi
 vario.4dir = vario_exp(data,vname="log_cadmium",dir=c(0,45,90,135),nlag=20, dlag=100.)
 
 plot_vario(vario.4dir,pairDisplay = "size")
-
-
 ```
 
 ```{r Directional_Variograms_2directions}
-
 vario.2dir = vario_exp(data,vname="log_cadmium",dir=c(45,135),nlag=20, dlag=100.)
 
 plot_vario(vario.2dir)
-
-# ggplot() + plot.varmod(vario.2dir) + plot.decoration(title="Directionnal variogram for cadmium (45, 135)")
+# plot.init() + plot.varmod(vario.2dir) + plot.decoration(title="Directionnal variogram for cadmium (45, 135)")
 ```
 
 ## Model adjustement
@@ -446,7 +425,6 @@ model_iso$display()
 # plot of the experiment variogram and the fitted model
 plot_vario(varioexp_iso,model = model_iso,pairDisplay = "size",
            title="Model adjustment for cadmium")
-
 ```
 
 ```{r fit_anisotropic, echo=TRUE, eval=TRUE}
@@ -461,13 +439,13 @@ model_aniso$display() ## look at the anisotropic matrices
 # plot of the experiment variogram and the fitted model
 plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
            title="Model adjustment for cadmium")
-
 ```
 
 2.  Try imposing different structures or combinations of structures.
 
 ```{r fitting_vs_structures, echo=TRUE, eval=TRUE}
 struct_names = c("NUGGET","CUBIC")
+
 # isotropic case
 model_iso = model_fit(varioexp_iso,struct=struct_names)
 plot_vario(varioexp_iso,model = model_aniso,pairDisplay = "size",
@@ -477,8 +455,6 @@ plot_vario(varioexp_iso,model = model_aniso,pairDisplay = "size",
 model_aniso = model_fit(varioexp_aniso,struct=struct_names)
 plot_vario(varioexp_aniso,model = model_aniso,pairDisplay = "size",
            title="Model adjustment for cadmium")
-
-
 ```
 
 3.  Compare the models adjusted on the experimental variogram and the variogram map (function `Model::fitFromVMap`).
@@ -521,8 +497,6 @@ plot_vario(vario_iso4var)
 vario_aniso4var = vario_exp(data,vname=variable_names,dir=c(0,45,90,135),nlag=20, dlag=100.)
 dev.new() # Open new window
 plot_vario(vario_aniso4var)
-
-
 ```
 
 2.  Adjust a model (try several options) using the function `model_fit` (isotropic and/or anisotropic cases) on experimental variograms and display the model characteristics.
@@ -539,11 +513,9 @@ model_iso4var$display()
 dev.new()
 plot_vario(vario_iso4var, model_iso4var)
 
-
 # selection of the variables
 ivar = 1
 jvar = 3
-
 
 p1 = plot_vario(vario_iso4var, model_iso4var, ivar = ivar, jvar = ivar,
                 title = paste0(variable_names[1+ivar], "-", variable_names[1+ivar]))
@@ -554,8 +526,6 @@ p3 = plot_vario(vario_iso4var, model_iso4var, ivar = jvar, jvar = jvar,
 
 dev.new()
 ggarrange(p1, p2, p3, ncol = 3, nrow = 1,legend = "bottom",common.legend = TRUE)
-
-
 ```
 
 ```{r model_4var_aniso, echo=TRUE, eval=TRUE}
@@ -582,6 +552,4 @@ p3 = plot_vario(vario_aniso4var, model_aniso4var, ivar = jvar, jvar = jvar,
 
 dev.new()
 ggarrange(p1, p2, p3, ncol = 3, nrow = 1,legend = "bottom",common.legend = TRUE)
-
-
 ```

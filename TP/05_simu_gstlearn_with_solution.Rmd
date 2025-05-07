@@ -1,11 +1,16 @@
 ---
-  title: "Gaussian simulation using R/gstlearn - Correction"
-  author: ""
-  date: "Option Géostatistique 2024"
-  output:
+title: "Gaussian simulation using R/gstlearn - Correction"
+author: ''
+date: "Option Géostatistique 2024"
+output:
+  html_document:
+    toc: true
+    df_print: paged
   pdf_document:
-  number_sections: yes
-  toc: yes
+    number_sections: true
+    toc: true
+editor_options:
+  chunk_output_type: console
 ---
 
 ```{r setup}
@@ -15,11 +20,7 @@ rm(list=ls())
 library(minigst)
 ```
 
-#Preamble
-
-```{r setting_asp}
-OptCst_defineByKey("ASP",0) # Fix the aspect ratio in all future plots
-```
+# Preamble
 
 1.  Create two `gstlearn` data bases:
 
@@ -99,8 +100,9 @@ minirgrf(target, model, nsim = 10, ntuba = 1000, dbcond = dat, vcond = "January_
 
 # Plots
 for (i in 1:10){
-  p = dbplot_grid(db=target,color=paste0("Simu.January_temp.",i), cmap = "Spectral", legendTitle= "Value", title = paste0("Conditional Simulation ", i))
-  p=addPoints(p,dat["x1"],dat["x2"], shape=18, size=1.5)
+  p = dbplot_grid(db=target,color=paste0("Simu.January_temp.",i), cmap = "Spectral", 
+                  legendTitle= "Value", title = paste0("Conditional Simulation ", i))
+  p = addPoints(p,dat["x1"],dat["x2"], shape=18, size=1.5)
   print(p)
 }
 ```

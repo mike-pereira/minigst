@@ -244,7 +244,7 @@ dfToDb<-function(df,coordnames,isGrid=FALSE){
     
     # Create DbGrid
     dbG=createDbGrid(coords=coords,coordnames = coordnames)
-    if (dbG$getSampleNumber() == nrow(df)) {
+    if (dbG$getNSample() == nrow(df)) {
       if(max(abs(dbG[,coordnames]-df[,coordnames]))<tolDiff){
         
         ## The coordinates coincide, we can simply copy the variables
