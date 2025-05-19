@@ -613,7 +613,7 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
   }
 
   if(is.null(db2)){
-    res=Model_evalCovMatrixSymmetric(model,db1,mode=md)$toTL()
+    res=Model_evalCovMatSym(model,db1,mode=md)$toTL()
     # res=Model_evalCovMatrix(model,db1,mode=md)$toTL()
   }else{
     res=Model_evalCovMatrix(model,db1,db2,mode=md)$toTL()
