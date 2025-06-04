@@ -278,7 +278,7 @@ if(flagInternetAvailable){
   download.file(paste0("https://soft.minesparis.psl.eu/gstlearn/data/Scotland/",fileNF), fileNF)
 }
 # Use absolute path while this issue is not fixed: https://github.com/gstlearn/gstlearn/issues/570
-grid = DbGrid_createFromNF(fileNF)
+grid = DbGrid_createFromNF(normalizePath(fileNF))
 grid
 ```
 
