@@ -116,7 +116,8 @@ fileNF = "Scotland_Temperatures.NF"
 if(flagInternetAvailable){
   download.file(paste0("https://soft.minesparis.psl.eu/gstlearn/data/Scotland/",fileNF), fileNF)
 }
-dat = Db_createFromNF(fileNF)
+# Use absolute path while this issue is not fixed: https://github.com/gstlearn/gstlearn/issues/570
+dat = Db_createFromNF(normalizePath(fileNF))
 dat
 ```
 
@@ -276,6 +277,7 @@ fileNF = "Scotland_Elevations.NF"
 if(flagInternetAvailable){
   download.file(paste0("https://soft.minesparis.psl.eu/gstlearn/data/Scotland/",fileNF), fileNF)
 }
+# Use absolute path while this issue is not fixed: https://github.com/gstlearn/gstlearn/issues/570
 grid = DbGrid_createFromNF(fileNF)
 grid
 ```
