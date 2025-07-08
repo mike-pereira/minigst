@@ -43,7 +43,7 @@ base::message("Erreur dans validObject(.Object) :
 
 * If you need to duplicate your objects, a simple assignment (e.g. `db2 = db1`) is not possible. You must use the `clone` method by doing this: `db2 = db1$clone()`. (Otherwise you would just copy the pointer to the object)
 
-* If you ask for the class type of a gstlearn object under R (e.g. class(mygrid)), you will obtain the C++ class name prefixed with ‘p’ (e.g. _p_DbGrid).
+* If you ask for the class type of a gstlearn object under R (e.g. class(mygrid)), you will obtain the C++ class name prefixed with ‘p’ (e.g. _p_gstlrn__DbGrid).
 		
 
 * The *gstlearn* objects memory content is not stored in the R workspace anymore. This means that saving the R workspace (`.RData`) is dangerous because it stores only memory pointers that won't be valid when loading the workspace in a future R session.
