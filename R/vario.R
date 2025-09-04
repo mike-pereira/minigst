@@ -321,7 +321,7 @@ vario_map<-function(db,vname,gridRes=20){
 model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneModel=TRUE,anisoModel=TRUE){
   types = .checkStructNames(struct)
   model = Model()
-  if(class(vario)=="_p_Vario"){
+  if(class(vario)=="_p_gstlrn__Vario"){
     
     if (!is.null(extDrift) || !is.null(polDrift)){
       ## Add drifts to model
@@ -329,7 +329,7 @@ model_fit<-function(vario,polDrift=NULL,extDrift=NULL,struct="SPHERICAL",pruneMo
     } 
     err = model$fit(vario, types=types, optvar=Option_VarioFit(flag_noreduce=pruneModel,auth_aniso=anisoModel))
   
-  }else if(class(vario)=="_p_DbGrid"){
+  }else if(class(vario)=="_p_gstlrn__DbGrid"){
     vn=vario$getNames("VMAP.*.Var")[1]
     if(is.na(vn)){
       stop("The DbGrid supplied in 'vario' should contain a variogram map saved as a variable whose name is of the form 'VMAP.*.Var'.")
@@ -613,7 +613,7 @@ model_covMat<-function(x,y=NULL,model=createModel(),mode="COV"){
   }
 
   if(is.null(db2)){
-    res=Model_evalCovMatrixSymmetric(model,db1,mode=md)$toTL()
+    res=Model_evalCovMatSym(model,db1,mode=md)$toTL()
     # res=Model_evalCovMatrix(model,db1,mode=md)$toTL()
   }else{
     res=Model_evalCovMatrix(model,db1,db2,mode=md)$toTL()
