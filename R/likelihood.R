@@ -59,7 +59,7 @@ createModelFromList <- function(structs)
 #'
 #' @return A list of with content
 #' model: \pkg{gstlearn} Model object containing the fitted model;
-#' beta: the vector of the estimated mean parameters;
+#' driftCoeffs: the vector of the estimated mean parameters;
 #' likelihood: the value of the likelihood.
 #'
 #' @export
