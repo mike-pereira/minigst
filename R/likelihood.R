@@ -48,7 +48,7 @@ createModelFromList <- function(structs)
 #' @param pruneModel NOT YET AVAILABLE. Whether or not to prune the model. See \emph{Details}.
 #' @param anisoModel Whether or not to fit an anistropic model.
 #' @param reml Whether or not to use Restricted Maximum Likelihood.
-#' @param nvecchia The number of neighbors to consider in Vecchia approximation (NA for full maximum likelihood)
+#' @param nVecchia The number of neighbors to consider in Vecchia approximation (NA for full maximum likelihood)
 #'
 #' @details 
 #'
