@@ -131,8 +131,10 @@ vario_exp<-function(db,vname, polDrift = NULL, extDrift=NULL,dir=NULL,nlag=20, d
   varioexp = Vario(varioParam)
 
   if (!is.null(extDrift) || !is.null(polDrift)){
-    
-    setVar(db,extDrift,"Drift")
+    if (!is.null(extDrift))
+    {
+      setVar(db,extDrift,"Drift")
+    }
     EDmodel = Model_create()
     ## Add drifts to model
     .addDriftsToModel(EDmodel,polDrift,length(extDrift))
@@ -758,13 +760,15 @@ model_getAnisoAngles<-function(model){
   err = mdl$delAllDrifts()
   ## Check if model is coherent with supplied polynomial drift
   if(!is.null(polDrift)){
-    ndim=Model_getNDim(mdl)
+    ndim=model$getNDim()
+  
     if(polDrift>=0){
       err = mdl$addDrift(DriftM())
     }
     if(polDrift>=1){
       indPol=data.frame(matrix(rep(0:polDrift,ndim),ncol=ndim))
       indPol=expand.grid(as.list(indPol))
+      indPol=indPol[which(rowSums(indPol)<=polDrift),]
       for(i in 2:nrow(indPol)){
         err = mdl$addDrift(DriftM(indPol[i,]))
       }

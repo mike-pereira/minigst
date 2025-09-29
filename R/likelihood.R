@@ -1,41 +1,3 @@
-#'Create a Model from a list of basic structures
-#'
-#'Function which returns a Model containing a list of basic structures
-#'
-#'
-#'@param structs The name of a basic structure or a vector of names
-#'
-#' @return A \pkg{gstlearn} Model object containing the created model.
-#' 
-#' @details 
-#'
-#' The parameters of the model are arbitrary fixed. This model intends to be used in a fitting procedure.
-#'  
-#' @export
-#'
-#' @examples
-#' library(minigst)
-#' model = createModelFromList("EXPONENTIAL")
-#' model$display()
-#' 
-#' model = createModelFromList(c("EXPONENTIAL","NUGGET"))
-#' model$display()
-#
-createModelFromList <- function(structs)
-{
-  types = .checkStructNames(structs)
-  if (length(structs) >= 1)
-  {
-    model = Model_createFromParam(ECov_fromKey(structs[1]))
-    for (i in 2:length(structs))
-      model$addCovFromParam(ECov_fromKey(structs[i]))
-    return(model)
-  } else
-  {
-    print("The list has to contain at least one valid name.")
-  }
-}
-
 #'Prune a model 
 #'
 #'Function which reduces a Model by suppressing the lowest variance components if it is below a threshold.
@@ -89,7 +51,7 @@ pruneModelF <- function(model, propVarMin = 0.05)
 #' @param polDrift Integer specifying the order of the polynomial drift. 
 #' @param extDrift Name of the variable(s) specifying the external drift, stored as a (vector of) string(s).
 #' @param struct Vector containing the names of the desired basic structures. The list of available structures is obtained by calling the function \code{printAllStruct()}.
-#' @param pruneModel NOT YET AVAILABLE. Whether or not to prune the model. See \emph{Details}.
+#' @param pruneModel Whether or not to prune the model. See \emph{Details}.
 #' @param anisoModel Whether or not to fit an anistropic model.
 #' @param reml Whether or not to use Restricted Maximum Likelihood.
 #' @param nVecchia The number of neighbors to consider in Vecchia approximation (NA for full maximum likelihood)
@@ -136,16 +98,18 @@ model_MaximumLikelihood<-function(db,vname,polDrift=NULL,extDrift=NULL,struct="S
   types = .checkStructNames(struct)
   
   if(class(db)=="_p_gstlrn__Db"){
-    
+    ndim = db$getNDim()
     dbaux = Db_createReduce(db,ranks = which(!is.na(db[vname])) - 1)
-    model = createModelFromList(struct)
+    model = createModel(struct, ndim = ndim)
     setVar(dbaux,vname)
-    if (!is.null(extDrift) || !is.null(polDrift)){
-      ## Add drifts to model
+    if (!is.null(extDrift) || !is.null(polDrift))
+    {  ## Add drifts to model
       .addDriftsToModel(model,polDrift,length(extDrift))
-      setVar(dbaux,extDrift,"Drift")
-    } 
-    else
+      if(!is.null(extDrift))
+      {
+        setVar(dbaux,extDrift,"Drift")
+      }
+    } else
     {
       model$setDriftIRF(0)
     }

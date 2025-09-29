@@ -24,7 +24,7 @@ plot_vario(varioExp,model = model, pairDisplay = "size",title="Model adjustment 
 #' # Fit a model without anisotropy
 struct_names = c("NUGGET","SPHERICAL", "SPHERICAL")
 varioExp = vario_exp(db=db, vname="January_temp", dir=c(30,-30), nlag=20, dlag=10.)
-result = model_MaximumLikelihood(db, "January_temp", struct=struct_names, pruneModel = T, anisoModel = F)
+result = model_MaximumLikelihood(db, "January_temp", struct=struct_names, pruneModel = F, anisoModel = F)
 model = result$model
 model$display() # Display the content of the model
 plot_vario(varioExp,model = model, pairDisplay = "size",title="Model adjustment for Elevation")
@@ -50,6 +50,23 @@ plot_vario(varioExp,model = model, pairDisplay = "size",title="Model adjustment 
 struct_names = c("NUGGET","SPHERICAL", "SPHERICAL")
 varioExp = vario_exp(db=db, vname="January_temp", dir=c(30,-30), nlag=20, dlag=10.)
 result = model_MaximumLikelihood(db, "January_temp", struct=struct_names, pruneModel = T, nVecchia = 10, anisoModel = F, reml = T)
+model = result$model
+model$display() # Display the content of the model
+plot_vario(varioExp,model = model, pairDisplay = "size",title="Model adjustment for Elevation")
+
+#With covariable
+struct_names = c("CUBIC", "GAUSSIAN")
+varioExp = vario_exp(db=db, vname="January_temp", extDrift = "Elevation", nlag=30, dlag=10., dir = c(0,90))
+result = model_MaximumLikelihood(db, "January_temp", extDrift = "Elevation",struct=struct_names, anisoModel = F)
+model = result$model
+model$display() # Display the content of the model
+plot_vario(varioExp,model = model, pairDisplay = "size",title="Model adjustment for Elevation")
+
+
+#With polynomial drift
+struct_names = c("NUGGET", "SPHERICAL", "GAUSSIAN")
+varioExp = vario_exp(db=db, vname="January_temp", polDrift = 1, nlag=30, dlag=10., dir = c(0,90))
+result = model_MaximumLikelihood(db, vname = "January_temp", polDrift = 1,struct=struct_names, anisoModel = F)
 model = result$model
 model$display() # Display the content of the model
 plot_vario(varioExp,model = model, pairDisplay = "size",title="Model adjustment for Elevation")
