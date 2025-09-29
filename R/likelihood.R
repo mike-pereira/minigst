@@ -36,6 +36,50 @@ createModelFromList <- function(structs)
   }
 }
 
+#'Prune a model 
+#'
+#'Function which reduces a Model by suppressing the lowest variance components if it is below a threshold.
+#'
+#'
+#'@param model The name of the \pkg{gstlearn} Model
+#'@param propVarMin The proportion of variance under which a component is suppressed.
+#'
+#' @return A boolean indicating if the model has been reduced and if there is more than one remaining structure
+#' @export
+#'
+#' @examples
+#' library(minigst)
+#'
+#' model = Model_createFromParam(ECov_fromKey("SPHERICAL"),sill = 0.9)
+#' model$addCovFromParam(ECov_fromKey("NUGGET"),sill = 0.01)
+#' model$addCovFromParam(ECov_fromKey("EXPONENTIAL"),sill = 0.1)
+#' pruneModelF(model)
+#' model$display()
+#' 
+
+pruneModelF <- function(model, propVarMin = 0.05)
+{
+  ncov = model$getNCov()
+  if (model$getNCov() < 2)
+    return(FALSE)
+  vartot = model$getTotalSill()
+  varMin = propVarMin * vartot
+  index = NA
+  for (icov in 0:(ncov-1))
+  {
+    sill = model$getSill(icov,0,0)
+    if (sill < varMin)
+    {
+      index = icov
+      varMin = sill
+    }
+  }
+  if (is.na(index))
+    return (FALSE)
+  
+  model$delCov(index)
+  return (TRUE)
+}
 #' Fit a model by maximum likelihood
 #'
 #' Function to fit a model by maximum likelihood under Gaussian assumption. Vecchia approximation can be used for large data sets.
@@ -75,7 +119,7 @@ createModelFromList <- function(structs)
 #' db$display()
 #'
 #' # Create directional experimental variograms along the directions 30 deg and -30 deg for the variable "Elevation"
-#' varioExp = vario_exp(db=db, vname="Elevation", dir=c(30,-30), nlag=20, dlag=10.)
+#' varioExp = vario_exp(db=db, vname="January_temp", dir=c(30,-30), nlag=20, dlag=10.)
 #'
 #' # Fit a model
 #' struct_names = c("NUGGET","SPHERICAL", "SPHERICAL")
@@ -108,10 +152,18 @@ model_MaximumLikelihood<-function(db,vname,polDrift=NULL,extDrift=NULL,struct="S
     if (is.na(nVecchia))
       nVecchia = -1234567
     
-    mop = ModelOptimParam_create(anisoModel) 
-    ll = AModelOptimFactory_create(model,dbaux,NULL,NULL,NULL,mop = mop, nVecchia, reml)
-    cost = ll$run()
-    return(list(model = model, driftCoeffs = ALikelihood_getBeta(ll), likelihood = -cost))
+    continue = T
+    while (continue)
+    {
+      mop = ModelOptimParam_create(anisoModel) 
+      ll = AModelOptimFactory_create(model,dbaux,NULL,NULL,NULL,mop = mop, nVecchia, reml)
+      cost = ll$run()
+      if (!pruneModel)
+        break;
+      continue = pruneModelF(model)
+      
+    }
+      return(list(model = model, driftCoeffs = ALikelihood_getBeta(ll), likelihood = -cost))
     
   }else{
     stop("The argument 'db' expects a Db.")
