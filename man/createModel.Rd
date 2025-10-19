@@ -10,13 +10,14 @@ createModel(
   sill = 1,
   param = 1,
   ndim = 2,
-  mean = 0
+  mean = 0,
+  isScale = FALSE
 )
 }
 \arguments{
 \item{struct}{Vector containing the names of the desired basic structures. The list of available structures is obtained by calling the function \code{\link{printAllStruct}}.}
 
-\item{range}{Value or vector specifying the range of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.}
+\item{range}{Value or vector specifying the range (see `isScale` for interpretation) of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.}
 
 \item{sill}{Value or vector specifying the sill/variance of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.}
 
@@ -25,6 +26,8 @@ createModel(
 \item{ndim}{Space dimension of the model.}
 
 \item{mean}{Mean of the model (0 by default).}
+
+\item{isScale}{Whether the specified `range` correspond to a correlation length (`FALSE`, choice by default) or a scaling factor (`TRUE`).}
 }
 \value{
 A \pkg{gstlearn} Model object.

@@ -19,6 +19,7 @@ getSeq<-function(v,n=4,nd=3){
 #' @param colValLimits Range of values for teh color mapping.
 #' @param naColor Color used for NA values.
 #' @param pointColor Default color of points when \code{color} is not specified.
+#' @param pointSize Default size of points when \code{size} is not specified.
 #' @param sizeRange Vector specifying the range of sizes when plotting the points by size.
 #' @param absSize Whether the absolute value of the variable should be used to define the size of the points.
 #' @param hideLegend Whether to hide the legend.
@@ -30,6 +31,7 @@ getSeq<-function(v,n=4,nd=3){
 #' @param add Either a boolean or \pkg{ggplot2} object. If \code{FALSE} (Default), then a new plot is created. If \code{TRUE}, then the points are added to the last plot (see \pkg{ggplot2::last_plot()}) specifying if the points are to be added to the last plot or not
 #'
 #' @details Note that you can specify only one of the arguments `color` and `cat_color`,but you can specify it jointly with the `size` argument.
+#' If none of these variables is specified, the points are all plotted with a common size `pointSize` and color `pointColor`.
 #'
 #' @return A \pkg{ggplot2} object containing the plot. If stored in a variable, use the function \code{print} to display the plot.
 #'
@@ -52,7 +54,8 @@ getSeq<-function(v,n=4,nd=3){
 #' print(plt)
 #'
 dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
-                       cmap=NULL,colValLimits=NULL,naColor="transparent",pointColor="black",
+                       cmap=NULL,colValLimits=NULL,naColor="transparent",
+                       pointColor="black",pointSize=1,
                        sizeRange=c(0.5,3),absSize=FALSE,
                        hideLegend=FALSE, legendTitle=NA,
                        asp = 1, xlab = NULL, ylab = NULL, title = NULL, add = FALSE){
@@ -98,7 +101,7 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
     }else{
       discreteVal=TRUE
       aes_plt$colour = substitute(factor(.data[[cat_color]]))
-      ncol=length(levels(factor(df[cat_color])))
+      ncol=length(levels(factor(df[[cat_color]])))
       if(is.null(cmap)){
         cmap=1:ncol
       }else if(length(cmap)<ncol){
@@ -108,9 +111,20 @@ dbplot_point<-function(db,color=NULL,cat_color=NULL,size=NULL,
   }
 
   if(is.null(color)&&is.null(cat_color)){
-    p = p + geom_point(data=df,aes_plt,color=pointColor,show.legend=ifelse(hideLegend,FALSE,NA))
+    if(is.null(size)){
+      p = p + geom_point(data=df,aes_plt,color=pointColor,
+                         size=pointSize,
+                         show.legend=ifelse(hideLegend,FALSE,NA))
+    }else{
+      p = p + geom_point(data=df,aes_plt,color=pointColor,
+                         show.legend=ifelse(hideLegend,FALSE,NA))
+    }
   }else{
-    p = p + geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
+    if(is.null(size)){
+      p = p + geom_point(data=df,aes_plt,size=pointSize,show.legend=ifelse(hideLegend,FALSE,NA))
+    }else{
+      p = p + geom_point(data=df,aes_plt,show.legend=ifelse(hideLegend,FALSE,NA))
+    }
   }
   
   if(!is.null(size)){
@@ -337,7 +351,7 @@ dbplot_grid<-function(db,color=NULL,cat_color=NULL,contour=NULL,
     }else{
       discreteVal=TRUE
       aes_plt$fill = substitute(factor(.data[[cat_color]]))
-      ncol=length(levels(factor(df[cat_color])))
+      ncol=length(levels(factor(df[[cat_color]])))
       if(is.null(cmap)){
         cmap=1:ncol
       }else if(length(cmap)<ncol){

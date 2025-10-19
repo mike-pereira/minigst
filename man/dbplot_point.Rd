@@ -13,10 +13,12 @@ dbplot_point(
   colValLimits = NULL,
   naColor = "transparent",
   pointColor = "black",
+  pointSize = 1,
   sizeRange = c(0.5, 3),
   absSize = FALSE,
   hideLegend = FALSE,
   legendTitle = NA,
+  asp = 1,
   xlab = NULL,
   ylab = NULL,
   title = NULL,
@@ -38,6 +40,8 @@ dbplot_point(
 
 \item{pointColor}{Default color of points when \code{color} is not specified.}
 
+\item{pointSize}{Default size of points when \code{size} is not specified.}
+
 \item{sizeRange}{Vector specifying the range of sizes when plotting the points by size.}
 
 \item{absSize}{Whether the absolute value of the variable should be used to define the size of the points.}
@@ -45,6 +49,8 @@ dbplot_point(
 \item{hideLegend}{Whether to hide the legend.}
 
 \item{legendTitle}{Title(s) of the legend: either a single string if just the color or the size if plotted, or a vector containing respectively the title of the color legende and the title of the size legend. Setting the legend title to `NA` means that the name of the variable is used as a title.}
+
+\item{asp}{Aspect ratio of the plot: 0 = No scaling of the axes, 1 = Axes have the same scale.}
 
 \item{xlab}{Title of the x-axis.}
 
@@ -63,6 +69,7 @@ the color, size and/or labels of the points.
 }
 \details{
 Note that you can specify only one of the arguments `color` and `cat_color`,but you can specify it jointly with the `size` argument.
+If none of these variables is specified, the points are all plotted with a common size `pointSize` and color `pointColor`.
 }
 \examples{
 library(minigst)

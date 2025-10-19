@@ -425,12 +425,13 @@ printAllStruct<-function(){
 #' Function to create a \pkg{gstlearn} Model object (corresponding to a single variable with an isotropic covariance function).
 #'
 #' @param struct Vector containing the names of the desired basic structures. The list of available structures is obtained by calling the function \code{\link{printAllStruct}}.
-#' @param range Value or vector specifying the range of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.
+#' @param range Value or vector specifying the range (see `isScale` for interpretation) of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.
 #' @param sill Value or vector specifying the sill/variance of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.
 #' @param param Value or vector specifying the extra parameter (eg. smoothness parameter for Matérn covariances) of each structure. Must be of size 1 (if all the structures share the same value) or have the same size as \code{struct}.
 #' @param ndim Space dimension of the model.
 #' @param mean Mean of the model (0 by default).
-#'
+#' @param isScale Whether the specified `range` correspond to a correlation length (`FALSE`, choice by default) or a scaling factor (`TRUE`).
+#' 
 #' @return A \pkg{gstlearn} Model object.
 #'
 #' @export
@@ -447,7 +448,7 @@ printAllStruct<-function(){
 #' ## Create model
 #' model=createModel(struct=struct_names, range = ranges, sill = variances, param = params,ndim=2)
 #'
-createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=2, mean=0){
+createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=2, mean=0,isScale=FALSE){
   
   nstruct=length(struct)
   range=.checkCovParam(range,"range",nstruct)
@@ -457,7 +458,7 @@ createModel<-function(struct="SPHERICAL", range = 0.3, sill = 1, param = 1,ndim=
   ## Create empty model for 1 variable, and spaceDim dimension
   model = Model(1,ndim)
   for(i in 1:nstruct){
-    err=Model_addCovFromParam(model,type = .checkStructNames(struct[i])[1][[1]], sill = sill[i], range=range[i],param=param[i]) ## Ajouter un nugget de variance 1
+    err=Model_addCovFromParam(model,type = .checkStructNames(struct[i])[1][[1]], sill = sill[i], range=range[i],param=param[i],flagRange = !isScale) ## Ajouter un nugget de variance 1
   }
   model$setMeans(mean)
   
