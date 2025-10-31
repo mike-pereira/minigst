@@ -8,8 +8,8 @@ __version__ = "0.1.0"
 
 from .db import (
     df_to_db,
-    df_to_db_grid,
-    create_db_grid,
+    df_to_dbgrid,
+    create_dbgrid,
     add_var_to_db,
     del_var_from_db,
     summary_stats,
@@ -39,11 +39,15 @@ from .gaussim import (
     simulate_gauss_rf,
 )
 
+from .loadData import(
+    data
+)
 __all__ = [
     # Database functions
+    "data",
     "df_to_db",
-    "df_to_db_grid",
-    "create_db_grid",
+    "df_to_dbgrid",
+    "create_dbgrid",
     "add_var_to_db",
     "del_var_from_db",
     "summary_stats",

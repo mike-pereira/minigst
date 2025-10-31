@@ -71,7 +71,7 @@ Example test:
 def test_df_to_db():
     df = pd.DataFrame({'x': [0, 1], 'y': [0, 1], 'z': [1, 2]})
     db = mg.df_to_db(df, coord_names=['x', 'y'])
-    assert db.getSampleNumber() == 2
+    assert db.NSample() == 2
 ```
 
 ## Adding New Features

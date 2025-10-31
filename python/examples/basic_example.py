@@ -29,7 +29,7 @@ data = pd.DataFrame({
 
 # Convert to Db
 db = mg.df_to_db(data, coord_names=['x', 'y'])
-print(f"Created Db with {db.getSampleNumber()} samples")
+print(f"Created Db with {db.getNSample()} samples")
 print(f"Variables: {db.getAllNames()}")
 
 # Example 2: Create a grid
@@ -38,7 +38,7 @@ print("-" * 50)
 
 # Create a regular grid
 db_grid = mg.create_db_grid(nx=[50, 50], dx=[2.0, 2.0], x0=[0, 0])
-print(f"Created DbGrid with {db_grid.getSampleNumber()} cells")
+print(f"Created DbGrid with {db_grid.getNSample()} cells")
 print(f"Grid dimensions: {db_grid.getNXs()}")
 
 # Example 3: Compute experimental variogram

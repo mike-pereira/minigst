@@ -24,7 +24,7 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-    "gstlearn>=1.4.0",
+    "gstlearn>=1.9.0",
     "matplotlib>=3.5.0",
     "numpy>=1.20.0",
     "pandas>=1.3.0",

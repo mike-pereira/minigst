@@ -163,9 +163,7 @@ def model_fit(vario, struct, prune_model=True, aniso_model=True):
     if isinstance(struct, str):
         struct = [struct]
     
-    # Get database from vario
-    db = vario.getDb()
-    ndim = db.getNDim()
+    ndim = vario.getNDim()
     
     # Create initial model
     model = create_model(struct, ndim=ndim)

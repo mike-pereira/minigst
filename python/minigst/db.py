@@ -58,10 +58,10 @@ def df_to_db(df, coord_names, is_grid=False):
         data.setLocators(coord_names, gl.ELoc.X)
         return data
     else:
-        return df_to_db_grid(df, coord_names)
+        return df_to_dbgrid(df, coord_names)
 
 
-def df_to_db_grid(df, coord_names):
+def df_to_dbgrid(df, coord_names):
     """
     Create a DbGrid object from a pandas DataFrame.
     
@@ -76,7 +76,7 @@ def df_to_db_grid(df, coord_names):
         >>> import pandas as pd
         >>> import minigst as mg
         >>> df = pd.DataFrame({'x': [0, 0, 1, 1], 'y': [0, 1, 0, 1], 'z': [1, 2, 3, 4]})
-        >>> db_grid = mg.df_to_db_grid(df, coord_names=['x', 'y'])
+        >>> dbgrid = mg.df_to_dbgrid(df, coord_names=['x', 'y'])
     """
     if not isinstance(df, pd.DataFrame):
         raise ValueError("The argument 'df' must be a pandas DataFrame.")
@@ -106,17 +106,17 @@ def df_to_db_grid(df, coord_names):
         x0.append(coord_values[0])
     
     # Create DbGrid
-    db_grid = gl.DbGrid.create(nx=nx, dx=dx, x0=x0)
+    dbgrid = gl.DbGrid.create(nx=nx, dx=dx, x0=x0)
     
     # Set coordinate names
     for i, coord in enumerate(coord_names):
-        db_grid.setName(f"x{i+1}", coord)
+        dbgrid.setName(f"x{i+1}", coord)
     
     # Add other variables
     for vn in var_names:
         if vn not in coord_names:
             # Match grid indices
-            vals = np.full(db_grid.getSampleNumber(), np.nan)
+            vals = np.full(dbgrid.getNSample(), np.nan)
             for idx, row in df.iterrows():
                 # Find corresponding grid index
                 coords = [row[c] for c in coord_names]
@@ -130,12 +130,12 @@ def df_to_db_grid(df, coord_names):
                         grid_idx += grid_pos * np.prod(nx[:i])
                 if 0 <= grid_idx < len(vals):
                     vals[grid_idx] = row[vn]
-            db_grid[vn] = vals
+            dbgrid[vn] = vals
     
-    return db_grid
+    return dbgrid
 
 
-def create_db_grid(coords=None, nx=None, dx=None, x0=None, coord_names=None):
+def create_dbgrid(coords=None, nx=None, dx=None, x0=None, coord_names=None):
     """
     Create an empty DbGrid.
     
@@ -155,9 +155,9 @@ def create_db_grid(coords=None, nx=None, dx=None, x0=None, coord_names=None):
         >>> # Using coordinate arrays
         >>> xseq = np.linspace(0, 1, 100)
         >>> yseq = np.linspace(0, 1, 100)
-        >>> db_grid = mg.create_db_grid(coords=[xseq, yseq], coord_names=['x', 'y'])
+        >>> dbgrid = mg.create_dbgrid(coords=[xseq, yseq], coord_names=['x', 'y'])
         >>> # Using grid parameters
-        >>> db_grid = mg.create_db_grid(nx=[100, 100], dx=[0.01, 0.01], x0=[0, 0])
+        >>> dbgrid = mg.create_dbgrid(nx=[100, 100], dx=[0.01, 0.01], x0=[0, 0])
     """
     if coords is not None:
         if not isinstance(coords, list):
@@ -201,14 +201,14 @@ def create_db_grid(coords=None, nx=None, dx=None, x0=None, coord_names=None):
         raise ValueError("Either coords or nx must be specified.")
     
     # Create DbGrid
-    db_grid = gl.DbGrid.create(nx=nx, dx=dx, x0=x0)
+    dbgrid = gl.DbGrid.create(nx=nx, dx=dx, x0=x0)
     
     # Set coordinate names if provided
     if coord_names is not None:
         for i, name in enumerate(coord_names):
-            db_grid.setName(f"x{i+1}", name)
+            dbgrid.setName(f"x{i+1}", name)
     
-    return db_grid
+    return dbgrid
 
 
 def add_var_to_db(db, var, vname):
@@ -224,7 +224,7 @@ def add_var_to_db(db, var, vname):
         >>> import numpy as np
         >>> import minigst as mg
         >>> # Create a Db
-        >>> db = mg.create_db_grid(nx=[10, 10])
+        >>> db = mg.create_dbgrid(nx=[10, 10])
         >>> # Add a variable
         >>> values = np.random.randn(100)
         >>> mg.add_var_to_db(db, values, 'random_field')
