@@ -10,3 +10,4 @@
 *.out
 *.Rout
 *_files
+TP/.ipynb_checkpoints/
