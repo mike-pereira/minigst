@@ -53,13 +53,35 @@ def df_to_db(df, coord_names, is_grid=False):
         # Create Db
         data = gl.Db()
         for vn in var_names:
-            data[vn] = df[vn].values
+            vals = df[vn].values
+            vals = encode_if_categorical(vals)
+            data[vn] = vals
         # Set coordinates
         data.setLocators(coord_names, gl.ELoc.X)
         return data
     else:
         return df_to_dbgrid(df, coord_names)
 
+def encode_if_categorical(arr):
+    """
+    Convert a vector to integers if it's not numeric.
+    - Strings / object types are converted to integer codes.
+    - Missing values are preserved as np.nan.
+    
+    Args:
+        arr: np.ndarray or pd.Series
+    Returns:
+        np.ndarray of floats (integers or nan)
+    """
+    if np.issubdtype(arr.dtype, np.number):
+        return arr.astype(float)  # garder float pour gérer nan
+    else:
+        cat = pd.Categorical(arr)
+        codes = cat.codes.astype(float)  # convert to float to allow nan
+        codes[codes == -1] = np.nan
+        return codes
+        
+        
 
 def df_to_dbgrid(df, coord_names):
     """
@@ -130,6 +152,7 @@ def df_to_dbgrid(df, coord_names):
                         grid_idx += grid_pos * np.prod(nx[:i])
                 if 0 <= grid_idx < len(vals):
                     vals[grid_idx] = row[vn]
+            vals = encode_if_categorical(vals)
             dbgrid[vn] = vals
     
     return dbgrid
@@ -233,6 +256,8 @@ def add_var_to_db(db, var, vname):
         if var.ndim == 1:
             # Single variable
             if isinstance(vname, str):
+                val = df[vn].values
+                var = encode_if_categorical(val)
                 db[vname] = var
             else:
                 raise ValueError("vname must be a string for a 1D array.")
@@ -240,7 +265,9 @@ def add_var_to_db(db, var, vname):
             # Multiple variables
             if isinstance(vname, (list, tuple)) and len(vname) == var.shape[1]:
                 for i, name in enumerate(vname):
-                    db[name] = var[:, i]
+                    val = var[:, i]
+                    val = encode_if_categorical(val)
+                    db[name] = val
             else:
                 raise ValueError("vname must be a list with length matching the number of columns.")
         else:
@@ -269,6 +296,8 @@ def del_var_from_db(db, vname):
     
     for name in vname:
         db.deleteColumn(name)
+
+
 
 
 def summary_stats(db, vname, stat=None, only_common=False):
@@ -330,3 +359,57 @@ def summary_stats(db, vname, stat=None, only_common=False):
             results[s] = df.median()
     
     return pd.DataFrame(results)
+    
+    
+def add_sel(db, sel):
+    """
+    Add a selection to a Db.
+
+    Args:
+        db: gstlearn Db object
+        sel: array-like of bool, vector indicating which points of db are selected.
+             The length must match the number of rows in db.
+
+    Returns:
+        None. Updates db in place.
+
+    Examples:
+        >>> import minigst as mg
+        >>> db = mg.df_to_db(df=Scotland, coord_names=["Longitude", "Latitude"])
+        >>> sel_var = db["Elevation"] > 100
+        >>> mg.add_sel(db=db, sel=sel_var)
+    """
+    if len(sel) != db.getNSample():  # assuming len(db) gives number of rows
+        raise ValueError(
+            f"The size of the selection vector ({len(sel)}) "
+            f"should be the same as the number of points in the Db ({len(db)})"
+        )
+
+    # Delete any existing 'Selection' column
+    db.deleteColumns(names="Selection")  # TODO: implement this in your Db class
+
+    # Add new selection
+    err = db.addSelection(tab=sel, name="Selection")  # TODO: implement this in your Db class
+
+    return None
+
+
+
+def clear_sel(db):
+    """
+    Clear the selection from a Db.
+
+    Args:
+        db: gstlearn Db object
+
+    Returns:
+        None. Updates db in place.
+
+    Examples:
+        >>> import minigst as mg
+        >>> mg.clear_sel(db=db)
+    """
+    # Delete selection columns using a locator function
+    db.deleteColumnsByLocator(gl.ELoc.SEL) 
+
+    return None

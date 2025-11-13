@@ -12,13 +12,14 @@ from .db import (
     create_dbgrid,
     add_var_to_db,
     del_var_from_db,
+    add_sel,
+    clear_sel,
     summary_stats,
 )
 
 from .plot import (
     dbplot_point,
     dbplot_grid,
-    add_points,
     add_lines,
 )
 
@@ -26,6 +27,7 @@ from .vario import (
     vario_exp,
     model_fit,
     create_model,
+    vario_map
 )
 
 from .kriging import (
@@ -52,7 +54,6 @@ __all__ = [
     "del_var_from_db",
     "summary_stats",
     # Plotting functions
-    "dbplot_point",
     "dbplot_grid",
     "add_points",
     "add_lines",
@@ -60,6 +61,7 @@ __all__ = [
     "vario_exp",
     "model_fit",
     "create_model",
+    "vario_map",
     # Kriging functions
     "minikriging",
     "minixvalid",

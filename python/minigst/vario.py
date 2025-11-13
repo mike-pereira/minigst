@@ -111,13 +111,14 @@ def vario_exp(db, vname, pol_drift=None, ext_drift=None, dir=None,
     return vario
 
 
-def create_model(struct, ndim=2):
+def create_model(struct, ndim=2, nvar = 1):
     """
     Create a variogram model.
     
     Args:
         struct: Structure type(s) (string or list of strings)
         ndim: Space dimension
+        nvar: number of variables
         
     Returns:
         gstlearn Model object
@@ -125,19 +126,19 @@ def create_model(struct, ndim=2):
     Examples:
         >>> import minigst as mg
         >>> model = mg.create_model('SPHERICAL', ndim=2)
-        >>> model = mg.create_model(['NUGGET', 'SPHERICAL'], ndim=2)
+        >>> model = mg.create_model(['NUGGET', 'SPHERICAL'], ndim=2, nvar = 2)
     """
     if isinstance(struct, str):
         struct = [struct]
     
-    # Create model with first structure
-    cov_type = gl.ECov.fromKey(struct[0])
-    model = gl.Model.createFromParam(cov_type, ndim=ndim)
     
+    context = gl.CovContext(nvar, ndim)
+    model = gl.Model.create(context)
+  
     # Add additional structures
-    for s in struct[1:]:
+    for s in struct:
         cov_type = gl.ECov.fromKey(s)
-        model.addCovFromParam(cov_type)
+        model.addCovFromParam(cov_type, sills = np.identity(nvar))
     
     return model
 
@@ -164,23 +165,22 @@ def model_fit(vario, struct, prune_model=True, aniso_model=True):
         struct = [struct]
     
     ndim = vario.getNDim()
-    
+    nvar = vario.getNVar()
     # Create initial model
-    model = create_model(struct, ndim=ndim)
+    model = create_model(struct, ndim=ndim, nvar =nvar)
     
     # Fit model
     if aniso_model:
         # Fit with anisotropy
-        err = model.fit(vario, mauto=gl.Option_AutoFit.create())
+        err = model.fitNew(vario = vario)
     else:
         # Fit without anisotropy (isotropic)
-        option = gl.Option_AutoFit.create()
-        option.setWmode(0)  # Isotropic mode
-        err = model.fit(vario, mauto=option)
+        option = gl.ModelOptimParam(aniso_model)
+        err = model.fitNew(vario, mop=option)
     
     # Prune model if requested
-    if prune_model:
-        _prune_model(model)
+    #if prune_model:
+    #    _prune_model(model)
     
     return model
 
@@ -196,14 +196,14 @@ def _prune_model(model, prop_var_min=0.05):
     Returns:
         Boolean indicating if model was pruned
     """
-    ncov = model.getCovaNumber()
+    ncov = model.getNCov()
     if ncov < 2:
         return False
     
     # Get variances
     variances = []
     for i in range(ncov):
-        cov = model.getCova(i)
+        cov = model.getCovAniso(i)
         variances.append(cov.getSill())
     
     total_var = sum(variances)
@@ -212,7 +212,78 @@ def _prune_model(model, prop_var_min=0.05):
     removed = False
     for i in range(ncov - 1, -1, -1):
         if variances[i] / total_var < prop_var_min:
-            model.delCova(i)
+            model.delCov(i)
             removed = True
     
-    return removed and model.getCovaNumber() > 1
+    return removed and model.getNCov() > 1
+    
+    
+def vario_map(db, vname, grid_res=20, plot=False):
+    """
+    Compute a variogram map for a variable in a gstlearn Db object.
+
+    Args:
+        db: gstlearn Db object
+        vname: Name of the variable (string)
+        grid_res: Grid resolution (int or float). Defines the number of cells
+                  in each direction for the computation grid.
+        plot: If True, plot the resulting variogram maps.
+
+    Returns:
+        DbGrid object containing the computed variogram map.
+
+    Details:
+        The variogram map is computed on a 2D grid centered at the origin,
+        with dimensions (2 * grid_res + 1) × (2 * grid_res + 1).
+
+    Examples:
+        >>> import minigst as mg
+        >>> Scotland, _ = data("Scotland")
+        >>> db = mg.df_to_db(df=Scotland, coord_names=["Longitude", "Latitude"])
+        >>> vario_map_grid = mg.vario_map(db=db, vname="Elevation", plot=True)
+    """
+    # Set the variable to be analyzed
+    db.setLocator(vname, gl.ELoc.Z) 
+
+    # Check argument type
+    if not isinstance(grid_res, (int, float)):
+        raise TypeError("grid_res must be numeric")
+
+    # Compute variogram map grid
+    # Equivalent de : db_vmap(db, nxx = rep(gridRes[1], db$getNDim()))
+    n_dim = db.getNDim()  # TODO: adapter selon gstlearn
+    grid_vmap = gl.db_vmap(db,nxx=np.repeat(grid_res, n_dim) ) # TODO: remplacer par appel correct
+
+    if plot:
+        # Extract variable names for plotting
+        vn_var = grid_vmap.get_names("VMAP.*.Var")[0]
+        vn_nb = grid_vmap.get_names("VMAP.*.Nb")[0]
+
+        # Plot variogram map (variance)
+        p1 = dbplot_grid(
+            grid_vmap,
+            color=vn_var,
+            cmap="Spectral",
+            legend_title="Var",
+            title=f"Variogram map : {vname}",
+        )
+
+        # Plot number of pairs
+        p2 = dbplot_grid(
+            grid_vmap,
+            color=vn_nb,
+            cmap="RdBu",
+            legend_title="Nb",
+            title="Number of pairs",
+        )
+
+        # Display side-by-side
+        from matplotlib import pyplot as plt
+
+        fig, axes = plt.subplots(1, 2, figsize=(10, 4))
+        p1(axes[0])
+        p2(axes[1])
+        plt.tight_layout()
+        plt.show()
+
+    return grid_vmap

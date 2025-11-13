@@ -2,6 +2,9 @@ import gstlearn.document as gdoc
 import gstlearn as gl
 import pandas as pd
 
+import importlib.resources as pkg_resources
+from pathlib import Path
+from . import datafiles
 
 def data(name):
     """
@@ -28,5 +31,19 @@ def data(name):
         temp_nf = gdoc.loadData("Scotland", "Scotland_Elevations.NF")
         grid = gl.DbGrid.createFromNF(temp_nf)
         return grid
+    if name == "Meuse":
+        file_path = pkg_resources.files(datafiles) / f"Meuse/meuse.csv"
+        meuse = pd.read_csv(file_path)
+        file_path = pkg_resources.files(datafiles) / f"Meuse/meuse.grid.csv"
+        meuse_grid = pd.read_csv(file_path)
+        return meuse, meuse_grid
+    if name == "Jura":
+       file_path = pkg_resources.files(datafiles) / f"Jura/jura_val_loc.csv"
+       jura_val_loc = pd.read_csv(file_path)
+       file_path = pkg_resources.files(datafiles) / f"Jura/jura_grid.csv"
+       jura_grid = pd.read_csv(file_path)
+       file_path = pkg_resources.files(datafiles) / f"Jura/jura_pred.csv"
+       jura_pred = pd.read_csv(file_path)
+       return jura_val_loc, jura_grid, jura_pred
     print("No data named " + name + " in the minigst package")
    

@@ -182,37 +182,7 @@ def dbplot_grid(db_grid, color=None, cmap=None, aspect=1,
     return ax
 
 
-def add_points(x, y, ax=None, color='black', marker='o', size=50, **kwargs):
-    """
-    Add points to an existing plot.
-    
-    Args:
-        x: X coordinates of points
-        y: Y coordinates of points
-        ax: Matplotlib axis object (if None, uses current axis)
-        color: Color of points
-        marker: Marker style
-        size: Size of points
-        **kwargs: Additional arguments passed to scatter
-        
-    Returns:
-        Matplotlib axis object
-        
-    Examples:
-        >>> import minigst as mg
-        >>> ax = mg.dbplot_point(db, color='elevation')
-        >>> mg.add_points([100, 200], [300, 400], ax=ax, color='red', marker='^')
-        >>> plt.show()
-    """
-    if ax is None:
-        ax = plt.gca()
-    
-    ax.scatter(x, y, c=color, marker=marker, s=size, **kwargs)
-    return ax
-
-
-def add_lines(ax=None, v=None, h=None, a=None, b=None, 
-              color='black', linestyle='solid', linewidth=1.25, **kwargs):
+def add_lines(ax=None, v=None, h=None, a=None, b=None, **kwargs):
     """
     Add lines to an existing plot.
     
@@ -222,9 +192,6 @@ def add_lines(ax=None, v=None, h=None, a=None, b=None,
         h: Y-coordinate for horizontal line
         a: Slope for line y = a*x + b
         b: Intercept for line y = a*x + b
-        color: Line color
-        linestyle: Line style
-        linewidth: Line width
         **kwargs: Additional arguments passed to plot functions
         
     Returns:
@@ -232,24 +199,25 @@ def add_lines(ax=None, v=None, h=None, a=None, b=None,
         
     Examples:
         >>> import minigst as mg
+        >>> 
         >>> ax = mg.dbplot_point(db, color='elevation')
-        >>> mg.add_lines(ax=ax, v=300, color='red')
-        >>> mg.add_lines(ax=ax, a=2, b=100, color='blue', linestyle='--')
+        >>> mg.add_lines(ax=ax, v=300, c='red')
+        >>> mg.add_lines(ax=ax, a=2, b=100, c='blue', linestyle='--')
         >>> plt.show()
     """
     if ax is None:
         ax = plt.gca()
     
     if v is not None:
-        ax.axvline(x=v, color=color, linestyle=linestyle, linewidth=linewidth, **kwargs)
+        ax.axvline(x=v, **kwargs)
     
     if h is not None:
-        ax.axhline(y=h, color=color, linestyle=linestyle, linewidth=linewidth, **kwargs)
+        ax.axhline(y=h, **kwargs)
     
     if a is not None and b is not None:
         xlim = ax.get_xlim()
         x_vals = np.array(xlim)
         y_vals = a * x_vals + b
-        ax.plot(x_vals, y_vals, color=color, linestyle=linestyle, linewidth=linewidth, **kwargs)
+        ax.plot(x_vals, y_vals, **kwargs)
     
     return ax
