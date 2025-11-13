@@ -5,8 +5,6 @@
 .vscode
 *.html
 *.pdf
-*.NF
-*.csv
 *.out
 *.Rout
 *_files
