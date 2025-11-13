@@ -80,9 +80,6 @@ def encode_if_categorical(arr):
         codes = cat.codes.astype(float)  # convert to float to allow nan
         codes[codes == -1] = np.nan
         return codes
-        
-        
-
 def df_to_dbgrid(df, coord_names):
     """
     Create a DbGrid object from a pandas DataFrame.
@@ -109,13 +106,13 @@ def df_to_dbgrid(df, coord_names):
     
     tol_diff = 1e-6
     ndim = len(coord_names)
-    
-    # Extract unique coordinates for each dimension
+      # Extract unique coordinates for each dimension
     nx = []
     dx = []
     x0 = []
-    
+    db = gl.Db()
     for coord in coord_names:
+        db[coord] = df[coord]
         coord_values = np.sort(df[coord].unique())
         nx.append(len(coord_values))
         
@@ -126,7 +123,7 @@ def df_to_dbgrid(df, coord_names):
             dx.append(1.0)
         
         x0.append(coord_values[0])
-    
+    db.setLocators(coord_names,gl.ELoc.X)
     # Create DbGrid
     dbgrid = gl.DbGrid.create(nx=nx, dx=dx, x0=x0)
     
@@ -135,29 +132,17 @@ def df_to_dbgrid(df, coord_names):
         dbgrid.setName(f"x{i+1}", coord)
     
     # Add other variables
+   
+    
     for vn in var_names:
         if vn not in coord_names:
             # Match grid indices
-            vals = np.full(dbgrid.getNSample(), np.nan)
-            for idx, row in df.iterrows():
-                # Find corresponding grid index
-                coords = [row[c] for c in coord_names]
-                # Simple matching for regular grids
-                grid_idx = 0
-                for i, c in enumerate(coords):
-                    grid_pos = int(np.round((c - x0[i]) / dx[i]))
-                    if i == 0:
-                        grid_idx = grid_pos
-                    else:
-                        grid_idx += grid_pos * np.prod(nx[:i])
-                if 0 <= grid_idx < len(vals):
-                    vals[grid_idx] = row[vn]
-            vals = encode_if_categorical(vals)
-            dbgrid[vn] = vals
-    
+            db["temp"] = encode_if_categorical(df[vn])
+            gl.migrate(db,dbgrid,"temp")
+            dbgrid.setName("Migrate",vn)
+         
     return dbgrid
-
-
+    
 def create_dbgrid(coords=None, nx=None, dx=None, x0=None, coord_names=None):
     """
     Create an empty DbGrid.

@@ -44,6 +44,6 @@ def data(name):
        jura_grid = pd.read_csv(file_path)
        file_path = pkg_resources.files(datafiles) / f"Jura/jura_pred.csv"
        jura_pred = pd.read_csv(file_path)
-       return jura_val_loc, jura_grid, jura_pred
+       return jura_pred, jura_grid, jura_val_loc
     print("No data named " + name + " in the minigst package")
    

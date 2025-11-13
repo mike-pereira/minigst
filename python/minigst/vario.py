@@ -47,8 +47,8 @@ def vario_exp(db, vname, pol_drift=None, ext_drift=None, dir=None,
     if isinstance(vname, str):
         vname = [vname]
     
-    for vn in vname:
-        db.setLocator(vn, gl.ELoc.Z)
+
+    db.setLocators(vname, gl.ELoc.Z)
     
     # Handle drifts
     if ext_drift is not None or pol_drift is not None:
@@ -143,14 +143,13 @@ def create_model(struct, ndim=2, nvar = 1):
     return model
 
 
-def model_fit(vario, struct, prune_model=True, aniso_model=True):
+def model_fit(vario, struct, aniso_model=True):
     """
     Fit a variogram model to experimental variogram.
     
     Args:
         vario: gstlearn Vario object (experimental variogram)
         struct: Structure type(s) (string or list of strings)
-        prune_model: Boolean, if True removes low-variance components
         aniso_model: Boolean, if True allows anisotropy
         
     Returns:
@@ -170,13 +169,9 @@ def model_fit(vario, struct, prune_model=True, aniso_model=True):
     model = create_model(struct, ndim=ndim, nvar =nvar)
     
     # Fit model
-    if aniso_model:
-        # Fit with anisotropy
-        err = model.fitNew(vario = vario)
-    else:
-        # Fit without anisotropy (isotropic)
-        option = gl.ModelOptimParam(aniso_model)
-        err = model.fitNew(vario, mop=option)
+    
+    option = gl.ModelOptimParam.create(aniso_model)
+    err = model.fitNew(vario = vario, mop=option)
     
     # Prune model if requested
     #if prune_model:
@@ -218,7 +213,7 @@ def _prune_model(model, prop_var_min=0.05):
     return removed and model.getNCov() > 1
     
     
-def vario_map(db, vname, grid_res=20, plot=False):
+def vario_map(db, vname, grid_res=20):
     """
     Compute a variogram map for a variable in a gstlearn Db object.
 
@@ -242,6 +237,7 @@ def vario_map(db, vname, grid_res=20, plot=False):
         >>> db = mg.df_to_db(df=Scotland, coord_names=["Longitude", "Latitude"])
         >>> vario_map_grid = mg.vario_map(db=db, vname="Elevation", plot=True)
     """
+    plot = False
     # Set the variable to be analyzed
     db.setLocator(vname, gl.ELoc.Z) 
 

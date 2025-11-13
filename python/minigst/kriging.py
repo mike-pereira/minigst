@@ -42,7 +42,7 @@ def _create_neigh(neigh):
 
 
 def minikriging(dbin, dbout, vname, model, type="ordinary", pol_drift=None, 
-                ext_drift=None, mean=None, neighborhood="unique", std=True, prefix="K"):
+                ext_drift=None, mean=None, nmini = None, nmaxi = None, radius = None, std=True, prefix="K"):
     """
     Compute kriging predictions.
     
@@ -55,13 +55,17 @@ def minikriging(dbin, dbout, vname, model, type="ordinary", pol_drift=None,
         pol_drift: Polynomial drift order for universal kriging
         ext_drift: External drift variable name(s) for universal kriging
         mean: Mean value for simple kriging
-        neighborhood: Neighborhood specification ('unique' or numeric)
+        nmini: Minimum number of points in the neighborood
+        nmaxi: Maximum number of points in the neighborood
+        radius: Maximum distance between target and data for the neighborood
         std: Boolean, compute standard deviations
         prefix: Prefix for output variable names
         
     Returns:
         None (results added directly to dbout)
-        
+    
+    Details:
+        If nmini = nmaxi = radius = None, unique neighborood is used.
     Examples:
         >>> import minigst as mg
         >>> mg.minikriging(obs_db, target_db, vname='temperature', 
@@ -71,12 +75,21 @@ def minikriging(dbin, dbout, vname, model, type="ordinary", pol_drift=None,
     if isinstance(vname, str):
         vname = [vname]
     
-    for vn in vname:
-        dbin.setLocator(vn, gl.ELoc.Z)
+
+    dbin.setLocators(vname, gl.ELoc.Z)
     
     # Create neighborhood
-    neigh = _create_neigh(neighborhood)
-    
+    if nmini is None and nmaxi is None and radius is None:
+        neigh = gl.NeighUnique()
+    else:
+        if nmini is None:
+            nmini = 0
+        if nmaxi is None:
+            nmaxi = dbin.getNSample()
+        if radius is None:
+            radius = np.inf
+        neigh = gl.NeighMoving.create(nmini=nmini, nmaxi=nmaxi, radius = radius)
+        
     # Handle drifts
     if ext_drift is not None or pol_drift is not None:
         # Universal kriging
