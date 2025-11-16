@@ -178,7 +178,7 @@ def minixvalid(dbin, vname, model, type="ordinary", pol_drift=None,
     # Remove previuous runs with same name
     vdel=[prefix+"."+v+"."+"esterr" for v in vname]
     vdel=vdel+[prefix+"."+v+"."+"stderr" for v in vname]
-    dbout.deleteColumns(vdel) 
+    dbin.deleteColumns(vdel) 
     
     for vn in vname:
         dbin.setLocator(vn, gl.ELoc.Z)
