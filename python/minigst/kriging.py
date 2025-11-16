@@ -71,11 +71,17 @@ def minikriging(dbin, dbout, vname, model, type="ordinary", pol_drift=None,
         >>> mg.minikriging(obs_db, target_db, vname='temperature', 
         ...                model=model, type='ordinary', std=True)
     """
+    
     # Set variable as Z locator
     if isinstance(vname, str):
         vname = [vname]
     
-
+    # Remove previuous runs with same name
+    vdel=[prefix+"."+v+"."+"estim" for v in vname]
+    vdel=vdel+[prefix+"."+v+"."+"stdev" for v in vname]
+    dbout.deleteColumns(vdel) 
+    
+    # Set Locators
     dbin.setLocators(vname, gl.ELoc.Z)
     
     # Create neighborhood
@@ -167,6 +173,12 @@ def minixvalid(dbin, vname, model, type="ordinary", pol_drift=None,
     # Set variable as Z locator
     if isinstance(vname, str):
         vname = [vname]
+        
+        
+    # Remove previuous runs with same name
+    vdel=[prefix+"."+v+"."+"esterr" for v in vname]
+    vdel=vdel+[prefix+"."+v+"."+"stderr" for v in vname]
+    dbout.deleteColumns(vdel) 
     
     for vn in vname:
         dbin.setLocator(vn, gl.ELoc.Z)
