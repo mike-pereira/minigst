@@ -35,6 +35,7 @@ from .kriging import (
     minixvalid,
     kriging_mean,
     set_mean,
+    regression,
 )
 
 from .gaussim import (

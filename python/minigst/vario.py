@@ -43,6 +43,7 @@ def vario_exp(db, vname, pol_drift=None, ext_drift=None, dir=None,
         >>> # Directional variogram
         >>> vario = mg.vario_exp(db, vname='elevation', dir=[30, -30], nlag=20, dlag=10.0)
     """
+    model = None
     # Set variable as Z locator
     if isinstance(vname, str):
         vname = [vname]
@@ -56,13 +57,15 @@ def vario_exp(db, vname, pol_drift=None, ext_drift=None, dir=None,
             for i in range(pol_drift + 1):
                 # Add polynomial drift terms (simplified)
                 pass
-        
+        else :
+            pol_drift = 0
         if ext_drift is not None:
             if isinstance(ext_drift, str):
                 ext_drift = [ext_drift]
-            for drift in ext_drift:
-                db.setLocator(drift, gl.ELoc.F)
-    
+            db.setLocators(ext_drift, gl.ELoc.F)
+        model = gl.Model.createFromParam()
+        ndrifts = db.getNLoc(gl.ELoc.F)
+        model.setDriftIRF(pol_drift,ndrifts)
     # Create variogram parameters
     if dir is None:
         # Omnidirectional variogram
@@ -106,7 +109,7 @@ def vario_exp(db, vname, pol_drift=None, ext_drift=None, dir=None,
     
     # Compute variogram
     vario = gl.Vario(vario_param)
-    vario.compute(db)
+    vario.compute(db, model = model)
     
     return vario
 
@@ -239,7 +242,7 @@ def vario_map(db, vname, grid_res=20):
     """
     plot = False
     # Set the variable to be analyzed
-    db.setLocator(vname, gl.ELoc.Z) 
+    db.setLocator(vname, gl.ELoc.Z, cleanSameLocators = True) 
 
     # Check argument type
     if not isinstance(grid_res, (int, float)):

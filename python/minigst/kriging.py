@@ -97,52 +97,84 @@ def minikriging(dbin, dbout, vname, model, type="ordinary", pol_drift=None,
         neigh = gl.NeighMoving.create(nmini=nmini, nmaxi=nmaxi, radius = radius)
         
     # Handle drifts
-    if ext_drift is not None or pol_drift is not None:
-        # Universal kriging
-        model_copy = model.clone()
-        
-        if pol_drift is not None:
-            # Add polynomial drift
-            model_copy.setDriftIRF(pol_drift)
-        
-        if ext_drift is not None:
-            if isinstance(ext_drift, str):
-                ext_drift = [ext_drift]
+    dbin.clearLocators(gl.ELoc.F)
+    dbout.clearLocators(gl.ELoc.F)
+    model_copy = model.clone()
+    
+    if ext_drift is not None :
+        if isinstance(ext_drift, str):
+             ext_drift = [ext_drift]
             
             # Set external drifts
-            for drift in ext_drift:
-                dbin.setLocator(drift, gl.ELoc.F)
-                dbout.setLocator(drift, gl.ELoc.F)
+       
+        dbin.setLocators(ext_drift, gl.ELoc.F)
+        dbout.setLocators(ext_drift, gl.ELoc.F)      
+     
+    if pol_drift is None:
+        pol_drift = -1 if type == "simple" else 0
+           
+       
             
-            # Add drift to model
-            for _ in ext_drift:
-                model_copy.addDrift(gl.DriftM())
-        
-        # Perform kriging
-        err = gl.kriging(dbin, dbout, model_copy, neigh,
-                        flag_est=True, flag_std=std,
-                        namconv=gl.NamingConvention(prefix))
-    
-    elif type == "simple":
+    ndrifts = dbin.getNLoc(gl.ELoc.F)
+    model_copy.setDriftIRF(pol_drift, ndrifts)
+          
+    if type == "simple":
         # Simple kriging
         if mean is None:
             raise ValueError("Mean must be specified for simple kriging.")
         
-        model_copy = model.clone()
+
         model_copy.setMean(mean)
         
-        err = gl.kriging(dbin, dbout, model_copy, neigh,
-                        flag_est=True, flag_std=std,
-                        namconv=gl.NamingConvention(prefix))
+    err = gl.kriging(dbin, dbout, model_copy, neigh,
+                     flag_est=True, flag_std=std,
+                     namconv=gl.NamingConvention(prefix))
     
-    else:
-        # Ordinary kriging
-        model_copy = model.clone()
-        model_copy.addDrift(gl.DriftM())
-        
-        err = gl.kriging(dbin, dbout, model_copy, neigh,
-                        flag_est=True, flag_std=std,
-                        namconv=gl.NamingConvention(prefix))
+def regression(db, vname, model, pol_drift = None, ext_drift = None, reml = False):
+    """
+    Compute and display linear regression coefficients (BLUE).
+    
+    Args:
+        db: gstlearn Db object with observation data
+        vname: Variable name (monovariable only)
+        model: gstlearn Model object
+        pol_drift: Polynomial drift order
+        ext_drift: External drift variable name(s)
+        reml: Boolean indicating if coefficients have to be computed with restricted maximum likelihood
+    Returns:
+        A list with 
+          - the mean parameter
+          - the vector of parameters for the polynomial coefficients
+          - the vector of parameters for the external drift coefficients    
+    Examples:
+        >>> import minigst as mg
+        >>> mg.minikriging(obs_db, vname='temperature', 
+        ...                model=model)
+    """    
+    if not isinstance(vname, str):
+        raise ValueError("You have to specify a single vname")
+    db.setLocator(vname, gl.ELoc.Z, cleanSameLocator = True)
+    db.clearLocators(gl.ELoc.F)
+    if ext_drift is not None :
+        if isinstance(ext_drift, str):
+             ext_drift = [ext_drift]
+    db.setLocators(ext_drift, gl.ELoc.F)
+    if pol_drift is None:
+        pol_drift = 0
+    ndrifts = db.getNLoc(gl.ELoc.F)
+    model_copy = model.clone()
+    model_copy.setDriftIRF(pol_drift, ndrifts)
+    a = gl.Likelihood.createForOptim(model_copy,db,reml)
+    a.computeLogLikelihood()
+    beta = a.getBeta()
+    d = model_copy.getDriftList()
+    print("Intercept:", np.round(beta[0],5))
+    for i in range(1,len(beta)-db.getNLoc(gl.ELoc.F)):
+        print(d.getDrift(i),":",np.round(beta[i],5))
+    s = 0
+    for i in range(len(beta)-db.getNLoc(gl.ELoc.F),len(beta)):
+        print(db.getNameByLocator(gl.ELoc.F,s),":", np.round(beta[i],5))
+        s+= 1
 
 
 def minixvalid(dbin, vname, model, type="ordinary", pol_drift=None,
