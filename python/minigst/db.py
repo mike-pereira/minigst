@@ -418,17 +418,19 @@ def set_var(db, vname , mode="Var"):
     >>> mg.set_var(db=db, vname="Elevation")
   """
     
+  if isinstance(vname, str):
+      vname = [vname]
   if mode=="Var" :
     db.clearLocators(gl.ELoc.Z)
     if len(set(vname) - set(db.getAllNames())) > 0:
       raise ValueError("Check the variable names: one or several of the supplied names are absent from the Db.")
-    err = db.setLocators(name = vname, locatorType = gl.ELoc.Z, cleanSameLocator = True)
+    err = db.setLocators(vname, gl.ELoc.Z)
 
   if mode=="Drift":
     db.clearLocators(gl.ELoc.F)
     if len(set(vname) - set(db.getAllNames())) > 0:
       raise ValueError("Check the variable names: one or several of the supplied names are absent from the Db.")
-    err = db.setLocators(name = vname, locatorType = gl.ELoc.F, cleanSameLocator = True)
+    err = db.setLocators(vname, gl.ELoc.F)
 
   return None   
 

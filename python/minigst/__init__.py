@@ -28,6 +28,11 @@ from .model import (
     create_model,
     model_fit,
     model_mle,
+    eval_cov_matrix,
+    eval_drift_matrix,
+    model_compute_log_likelihood,
+    set_sill,
+    set_range,
 )
 
 from .vario import (
