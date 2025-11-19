@@ -2,7 +2,7 @@
 
 import numpy as np
 import gstlearn as gl
-
+from .model import add_drifts_to_model
 
 def _create_neigh(neigh):
     """
@@ -106,24 +106,16 @@ def minikriging(dbin, dbout, vname, model, type="ordinary", pol_drift=None,
              ext_drift = [ext_drift]
             
             # Set external drifts
-       
         dbin.setLocators(ext_drift, gl.ELoc.F)
         dbout.setLocators(ext_drift, gl.ELoc.F)      
      
-    if pol_drift is None:
-        pol_drift = -1 if type == "simple" else 0
-           
-       
-            
     ndrifts = dbin.getNLoc(gl.ELoc.F)
-    model_copy.setDriftIRF(pol_drift, ndrifts)
+    add_drifts_to_model(model_copy, pol_drift, ndrifts, type)
           
     if type == "simple":
         # Simple kriging
         if mean is None:
             raise ValueError("Mean must be specified for simple kriging.")
-        
-
         model_copy.setMean(mean)
         
     err = gl.kriging(dbin, dbout, model_copy, neigh,

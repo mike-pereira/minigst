@@ -15,6 +15,7 @@ from .db import (
     add_sel,
     clear_sel,
     summary_stats,
+    set_var,
 )
 
 from .plot import (
@@ -23,10 +24,14 @@ from .plot import (
     add_lines,
 )
 
+from .model import (
+    create_model,
+    model_fit,
+    model_mle,
+)
+
 from .vario import (
     vario_exp,
-    model_fit,
-    create_model,
     vario_map
 )
 
@@ -41,6 +46,7 @@ from .kriging import (
 from .gaussim import (
     simulate_gauss_rf,
 )
+
 
 from .loadData import(
     data

@@ -3,7 +3,6 @@
 import numpy as np
 import gstlearn as gl
 
-
 def _rep_arg(n, arg, argname):
     """Adapt the size of model parameters."""
     if not isinstance(arg, (list, tuple, np.ndarray)):
@@ -49,7 +48,7 @@ def vario_exp(db, vname, pol_drift=None, ext_drift=None, dir=None,
         vname = [vname]
     
 
-    db.setLocators(vname, gl.ELoc.Z)
+    db.setLocators(vname, gl.ELoc.Z, cleanSameLocator=True)
     
     # Handle drifts
     if ext_drift is not None or pol_drift is not None:
@@ -114,107 +113,7 @@ def vario_exp(db, vname, pol_drift=None, ext_drift=None, dir=None,
     return vario
 
 
-def create_model(struct, ndim=2, nvar = 1):
-    """
-    Create a variogram model.
-    
-    Args:
-        struct: Structure type(s) (string or list of strings)
-        ndim: Space dimension
-        nvar: number of variables
-        
-    Returns:
-        gstlearn Model object
-        
-    Examples:
-        >>> import minigst as mg
-        >>> model = mg.create_model('SPHERICAL', ndim=2)
-        >>> model = mg.create_model(['NUGGET', 'SPHERICAL'], ndim=2, nvar = 2)
-    """
-    if isinstance(struct, str):
-        struct = [struct]
-    
-    
-    context = gl.CovContext(nvar, ndim)
-    model = gl.Model.create(context)
-  
-    # Add additional structures
-    for s in struct:
-        cov_type = gl.ECov.fromKey(s)
-        model.addCovFromParam(cov_type, sills = np.identity(nvar))
-    
-    return model
 
-
-def model_fit(vario, struct, aniso_model=True):
-    """
-    Fit a variogram model to experimental variogram.
-    
-    Args:
-        vario: gstlearn Vario object (experimental variogram)
-        struct: Structure type(s) (string or list of strings)
-        aniso_model: Boolean, if True allows anisotropy
-        
-    Returns:
-        gstlearn Model object
-        
-    Examples:
-        >>> import minigst as mg
-        >>> vario = mg.vario_exp(db, vname='elevation', nlag=20, dlag=10.0)
-        >>> model = mg.model_fit(vario, struct=['NUGGET', 'SPHERICAL'])
-    """
-    if isinstance(struct, str):
-        struct = [struct]
-    
-    ndim = vario.getNDim()
-    nvar = vario.getNVar()
-    # Create initial model
-    model = create_model(struct, ndim=ndim, nvar =nvar)
-    
-    # Fit model
-    
-    option = gl.ModelOptimParam.create(aniso_model)
-    err = model.fitNew(vario = vario, mop=option)
-    
-    # Prune model if requested
-    #if prune_model:
-    #    _prune_model(model)
-    
-    return model
-
-
-def _prune_model(model, prop_var_min=0.05):
-    """
-    Prune a model by suppressing low variance components.
-    
-    Args:
-        model: gstlearn Model object
-        prop_var_min: Minimum proportion of variance to keep
-        
-    Returns:
-        Boolean indicating if model was pruned
-    """
-    ncov = model.getNCov()
-    if ncov < 2:
-        return False
-    
-    # Get variances
-    variances = []
-    for i in range(ncov):
-        cov = model.getCovAniso(i)
-        variances.append(cov.getSill())
-    
-    total_var = sum(variances)
-    
-    # Remove low variance components
-    removed = False
-    for i in range(ncov - 1, -1, -1):
-        if variances[i] / total_var < prop_var_min:
-            model.delCov(i)
-            removed = True
-    
-    return removed and model.getNCov() > 1
-    
     
 def vario_map(db, vname, grid_res=20):
     """
@@ -242,7 +141,7 @@ def vario_map(db, vname, grid_res=20):
     """
     plot = False
     # Set the variable to be analyzed
-    db.setLocator(vname, gl.ELoc.Z, cleanSameLocators = True) 
+    db.setLocator(vname, gl.ELoc.Z, cleanSameLocator = True) 
 
     # Check argument type
     if not isinstance(grid_res, (int, float)):

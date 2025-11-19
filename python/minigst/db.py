@@ -398,3 +398,37 @@ def clear_sel(db):
     db.deleteColumnsByLocator(gl.ELoc.SEL) 
 
     return None
+
+def set_var(db, vname , mode="Var"):
+  """
+  Set variables of interest in a Db.
+    Function to select which variables in the Db are the variables of interest or drifts in the study.
+    Parameters
+    ----------
+    db : gstlearn Db object
+        The Db object to modify.
+    vname : str or list[str]
+        The name(s) of the variable(s) to select.
+    mode : str
+        The mode of selection: "Var" for variable of interest, "Drift" for drift specification.
+    Examples
+    --------
+    >>> import minigst as mg
+    >>> db = mg.df_to_db(df=Scotland, coord_names=["Longitude", "Latitude"])
+    >>> mg.set_var(db=db, vname="Elevation")
+  """
+    
+  if mode=="Var" :
+    db.clearLocators(gl.ELoc.Z)
+    if len(set(vname) - set(db.getAllNames())) > 0:
+      raise ValueError("Check the variable names: one or several of the supplied names are absent from the Db.")
+    err = db.setLocators(name = vname, locatorType = gl.ELoc.Z, cleanSameLocator = True)
+
+  if mode=="Drift":
+    db.clearLocators(gl.ELoc.F)
+    if len(set(vname) - set(db.getAllNames())) > 0:
+      raise ValueError("Check the variable names: one or several of the supplied names are absent from the Db.")
+    err = db.setLocators(name = vname, locatorType = gl.ELoc.F, cleanSameLocator = True)
+
+  return None   
+
