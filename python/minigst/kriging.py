@@ -4,6 +4,7 @@ import numpy as np
 import gstlearn as gl
 import pandas as pd
 from .model import add_drifts_to_model
+from .db import df_to_db
 
 def _create_neigh(neigh):
     """
@@ -295,7 +296,7 @@ def kriging_mean(db, vname, model):
     
     df = pd.DataFrame({'x': [db.getCenters(useSel=True)[0]], 'y': [db.getCenters(useSel=True)[1]]})
     df = pd.concat([df,df])
-    tgt = mg.df_to_db(df, coord_names=['x', 'y'])
+    tgt = df_to_db(df, coord_names=['x', 'y'])
     
     
     tgt.display()
