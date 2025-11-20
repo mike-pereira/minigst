@@ -2,7 +2,7 @@
 
 import numpy as np
 import gstlearn as gl
-
+from .kriging import kriging_mean, set_mean
 
 
 def simulate_gauss_rf(target, model, nsim=1, ntuba=1000, seed=43431, 
