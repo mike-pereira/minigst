@@ -2,6 +2,7 @@
 
 import numpy as np
 import gstlearn as gl
+import pandas as pd
 from .model import add_drifts_to_model
 
 def _create_neigh(neigh):

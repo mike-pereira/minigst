@@ -2,7 +2,6 @@
 
 import numpy as np
 import gstlearn as gl
-import pandas as pd
 from .kriging import kriging_mean, set_mean
 
 
