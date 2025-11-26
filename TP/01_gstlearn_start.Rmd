@@ -299,6 +299,3 @@ data(meuse.grid) # load target grid
 6. Create a **DbGrid** from the Meuse dataset (dataframe `meuse.grid`). Remember to set the correct variables as coordinates.
 
 7. Plot the map of soil characteristics from the resulting DbGrid (use the argument `cat_color` in the `dbplot_grid` function).
-
-
-

@@ -1,0 +1,9 @@
+# License
+
+This package is distributed under the GNU General Public License (GPL).
+
+The minigst package provides wrapper functions for gstlearn and is distributed 
+under the same license terms as the main gstlearn library.
+
+For more information about the GPL license, please visit:
+https://www.gnu.org/licenses/gpl-3.0.en.html

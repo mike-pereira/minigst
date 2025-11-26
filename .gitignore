@@ -5,11 +5,10 @@
 .vscode
 *.html
 *.pdf
-*.NF
-*.csv
 *.out
 *.Rout
 *_files
+TP/.ipynb_checkpoints/
 .ipynb_checkpoints
 lib
 minigst.egg-info
