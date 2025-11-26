@@ -15,7 +15,7 @@ dbplot_grid(
   nLevels = NULL,
   hideLegend = FALSE,
   legendTitle = NA,
-  asp = 0,
+  asp = 1,
   xlab = NULL,
   ylab = NULL,
   title = NULL,
