@@ -1,0 +1,51 @@
+name: nonreg-TP_python_ubuntu-latest
+
+on:
+  # Permit calling the workflow from outside (https://github.com/actions/runner/discussions/1884)
+  workflow_call:
+   # Activate the workflow at each push on main branch
+  push:
+    branches: [ main ]
+  # Activate the workflow at each pull request on main branch
+  pull_request:
+    branches: [ main ]
+  # Activate the workflow every day at 23:30 UTC = for Paris 00:30 (summer) or 01:30 (winter)
+  schedule:
+    # * is a special character in YAML so you have to quote the string
+    - cron:  '30 23 * * *'
+  # Permit manual trigger
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Manual'
+        required: false
+        default: ''
+
+env:
+  PYTHON_VERSION : "3.13"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: ${{env.PYTHON_VERSION}}
+        activate-environment: true
+
+    - name: Install Python dependencies
+      run: |
+        uv pip install nbval requests IPython scikit-learn
+
+    - name: Install minigst
+      run: |
+        uv pip install python/
+
+    - name: Execute Python notebooks
+      run: |
+        uv run pytest --nbval-lax
+      continue-on-error: true
