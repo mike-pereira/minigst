@@ -10,3 +10,8 @@
 *.out
 *.Rout
 *_files
+.ipynb_checkpoints
+lib
+minigst.egg-info
+*__pycache__/
+*/build/
