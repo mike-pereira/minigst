@@ -63,7 +63,7 @@ jobs:
 
     - name: Install minigst
       run: |
-        R CMD INSTALL .
+        R CMD INSTALL R/
 
     - name: Execute R TP
       run: |
