@@ -39,7 +39,12 @@ jobs:
 
     - name: Install Python dependencies
       run: |
-        uv pip install nbval requests IPython scikit-learn
+        uv pip install nbval requests IPython scikit-learn ruff
+
+    - name: Check Python formatting
+      run: |
+        ruff format --check
+      continue-on-error: true
 
     - name: Install minigst
       run: |
