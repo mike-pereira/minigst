@@ -44,7 +44,6 @@ jobs:
     - name: Check Python formatting
       run: |
         ruff format --check
-      continue-on-error: true
 
     - name: Install minigst
       run: |
@@ -52,5 +51,4 @@ jobs:
 
     - name: Execute Python notebooks
       run: |
-        uv run pytest --nbval-lax
-      continue-on-error: true
+        pytest --nbval-lax
