@@ -35,10 +35,7 @@ from .model import (
     set_range,
 )
 
-from .vario import (
-    vario_exp,
-    vario_map
-)
+from .vario import vario_exp, vario_map
 
 from .kriging import (
     minikriging,
@@ -53,9 +50,8 @@ from .gaussim import (
 )
 
 
-from .loadData import(
-    data
-)
+from .loadData import data
+
 __all__ = [
     # Database functions
     "data",

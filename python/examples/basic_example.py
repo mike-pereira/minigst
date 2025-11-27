@@ -21,14 +21,16 @@ print("-" * 50)
 # Create a simple DataFrame with spatial data
 np.random.seed(42)
 n_points = 50
-data = pd.DataFrame({
-    'x': np.random.uniform(0, 100, n_points),
-    'y': np.random.uniform(0, 100, n_points),
-    'z': np.random.randn(n_points) * 10 + 50
-})
+data = pd.DataFrame(
+    {
+        "x": np.random.uniform(0, 100, n_points),
+        "y": np.random.uniform(0, 100, n_points),
+        "z": np.random.randn(n_points) * 10 + 50,
+    }
+)
 
 # Convert to Db
-db = mg.df_to_db(data, coord_names=['x', 'y'])
+db = mg.df_to_db(data, coord_names=["x", "y"])
 print(f"Created Db with {db.getNSample()} samples")
 print(f"Variables: {db.getAllNames()}")
 
@@ -47,43 +49,47 @@ print("-" * 50)
 
 try:
     # Compute omnidirectional variogram
-    vario = mg.vario_exp(db, vname='z', nlag=10, dlag=10.0)
+    vario = mg.vario_exp(db, vname="z", nlag=10, dlag=10.0)
     print("Experimental variogram computed successfully")
-    
+
     # Example 4: Fit a model
     print("\nExample 4: Fitting variogram model")
     print("-" * 50)
-    
-    model = mg.model_fit(vario, struct=['NUGGET', 'SPHERICAL'])
+
+    model = mg.model_fit(vario, struct=["NUGGET", "SPHERICAL"])
     print("Model fitted successfully")
     print(f"Number of covariance structures: {model.getCovaNumber()}")
-    
+
     # Example 5: Kriging
     print("\nExample 5: Performing kriging")
     print("-" * 50)
-    
-    mg.minikriging(db, db_grid, vname='z', model=model, type='ordinary', std=True)
+
+    mg.minikriging(db, db_grid, vname="z", model=model, type="ordinary", std=True)
     print("Kriging completed successfully")
-    print(f"Output variables: {[name for name in db_grid.getAllNames() if 'K.' in name]}")
-    
+    print(
+        f"Output variables: {[name for name in db_grid.getAllNames() if 'K.' in name]}"
+    )
+
     # Example 6: Plotting
     print("\nExample 6: Creating plots")
     print("-" * 50)
-    
+
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
-    
+
     # Plot kriging predictions
-    mg.dbplot_grid(db_grid, color='K.z.estim', ax=axes[0], title='Kriging Predictions')
-    mg.add_points(data['x'], data['y'], ax=axes[0], color='white', marker='o', size=30)
-    
+    mg.dbplot_grid(db_grid, color="K.z.estim", ax=axes[0], title="Kriging Predictions")
+    mg.add_points(data["x"], data["y"], ax=axes[0], color="white", marker="o", size=30)
+
     # Plot kriging standard deviations
-    mg.dbplot_grid(db_grid, color='K.z.stdev', ax=axes[1], title='Kriging Std Dev', cmap='RdBu')
-    mg.add_points(data['x'], data['y'], ax=axes[1], color='white', marker='o', size=30)
-    
+    mg.dbplot_grid(
+        db_grid, color="K.z.stdev", ax=axes[1], title="Kriging Std Dev", cmap="RdBu"
+    )
+    mg.add_points(data["x"], data["y"], ax=axes[1], color="white", marker="o", size=30)
+
     plt.tight_layout()
-    plt.savefig('/tmp/minigst_example.png', dpi=150, bbox_inches='tight')
+    plt.savefig("/tmp/minigst_example.png", dpi=150, bbox_inches="tight")
     print("Plot saved to /tmp/minigst_example.png")
-    
+
 except Exception as e:
     print(f"Note: Some examples may require gstlearn to be properly installed.")
     print(f"Error: {e}")
@@ -92,7 +98,7 @@ except Exception as e:
 print("\nExample 7: Computing summary statistics")
 print("-" * 50)
 
-stats = mg.summary_stats(db, vname='z')
+stats = mg.summary_stats(db, vname="z")
 print("Summary statistics:")
 print(stats)
 
