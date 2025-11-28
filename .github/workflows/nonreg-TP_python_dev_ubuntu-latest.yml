@@ -91,6 +91,11 @@ jobs:
         cd ${{env.GSTLEARN_ROOT}}
         cmake --build ${{env.BUILD_DIR}} --parallel 3 --target python_install
 
+    - name: Fix pyproject.toml to remove gstlearn version constraint
+      run: |
+        cd python
+        sed -i 's/gstlearn (== .*),/gstlearn,/' pyproject.toml
+
     - name: Install minigst
       run: |
         uv pip install python/
