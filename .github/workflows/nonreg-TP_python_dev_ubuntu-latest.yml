@@ -1,0 +1,113 @@
+name: nonreg-TP_python_dev_ubuntu-latest
+
+on:
+  # Permit calling the workflow from outside (https://github.com/actions/runner/discussions/1884)
+  workflow_call:
+  # Activate the workflow at each push on main branch
+  push:
+    branches: [ dev ]
+  # # Activate the workflow at each pull request on main branch
+  # pull_request:
+  #   branches: [ main ]
+  # Activate the workflow every day at 23:30 UTC = for Paris 00:30 (summer) or 01:30 (winter)
+  schedule:
+    # * is a special character in YAML so you have to quote the string
+    - cron:  '30 23 * * *'
+  # Permit manual trigger
+  workflow_dispatch:
+    inputs:
+      logLevel:
+        description: 'Manual'
+        required: false
+        default: ''
+
+env:
+  CMAKE_BUILD_TYPE : Release
+  BUILD_DIR : build
+  PYTHON_VERSION : "3.14"
+  GSTLEARN_ROOT : ${{github.workspace}}/gstlearn
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        ref: dev
+
+    - name: Install dependencies
+      run: |
+        sudo rm /etc/apt/sources.list.d/microsoft-prod.list
+        sudo apt-get update
+        sudo apt-get install -yq \
+          libhdf5-dev \
+          libsuitesparse-dev \
+          libopenmpi-dev \
+          libboost-dev \
+          libeigen3-dev \
+          libnlopt-dev \
+          libpng-dev \
+          pandoc
+
+    - name: Setup uv
+      uses: astral-sh/setup-uv@v6
+      with:
+        python-version: ${{env.PYTHON_VERSION}}
+        activate-environment: true
+
+    - name: Install Python dependencies
+      run: |
+        uv pip install numpy nbval requests IPython scikit-learn ruff
+
+    - name: Check Python formatting
+      run: |
+        ruff format --check
+
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.9
+
+    - uses: actions/checkout@v4
+      with:
+        repository: gstlearn/gstlearn
+        path: ${{env.GSTLEARN_ROOT}}
+        
+    - name: Configure build directory for python gstlearn
+      run: |
+        cd ${{env.GSTLEARN_ROOT}}
+        cmake \
+          -B${{ env.BUILD_DIR }} \
+          -DBUILD_PYTHON=ON \
+          -DBUILD_R=OFF \
+          -DBUILD_TESTING=OFF \
+          -DBUILD_DOC=OFF
+      env:
+        SCCACHE_GHA_ENABLED: "true"
+        CMAKE_CC_COMPILER_LAUNCHER: sccache
+        CMAKE_CXX_COMPILER_LAUNCHER: sccache
+
+    - name: Build and install gstlearn
+      run: |
+        cd ${{env.GSTLEARN_ROOT}}
+        cmake --build ${{env.BUILD_DIR}} --parallel 3 --target python_install
+
+    - name: Install minigst
+      run: |
+        uv pip install python/
+
+    - name: Execute Python notebooks
+      run: |
+        pytest --nbval-lax
+
+#    - name: Compress output logs
+#      if: success() || failure()
+#      run: |
+#        cd ~/minigst_out
+#        find . -type f \( -name "*.*" \) -print0 | tar -czvf TP-python-logs_dev.tar.gz --null -T -
+
+#    - name: Publish output logs as artefact
+#      if: always()
+#      uses: actions/upload-artifact@v4
+#      with:
+#        name: TP-python-logs
+#        path: ~/minigst_out/TP-python-logs_dev.tar.gz
