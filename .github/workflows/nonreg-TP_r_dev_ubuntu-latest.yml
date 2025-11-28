@@ -108,13 +108,16 @@ jobs:
       run: |
         cd R
         sed -i 's/gstlearn (== .*),/gstlearn,/' DESCRIPTION
+        cat DESCRIPTION
 
     - name: Install minigst
       run: |
+        cd R
         R CMD INSTALL .
 
     - name: Execute R TP
       run: |
+        cd R
         run/build_rmd_html.sh TP ~/minigst_out run/run_test_rmd.R
 
     - name: Compress output logs
