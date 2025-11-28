@@ -104,6 +104,11 @@ jobs:
         cd ${{env.GSTLEARN_ROOT}}
         cmake --build ${{env.BUILD_DIR}} --parallel 3 --target r_install
 
+    - name: Fix DESCRIPTION to remove gstlearn version constraint
+      run: |
+        cd R
+        sed -i 's/gstlearn (== .*),/gstlearn,/' DESCRIPTION
+
     - name: Install minigst
       run: |
         R CMD INSTALL .
