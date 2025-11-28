@@ -158,6 +158,6 @@ If you have questions about contributing:
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the GPL license.
+By contributing, you agree that your contributions will be licensed under the BSD-3 license.
 
 Thank you for contributing to minigst!

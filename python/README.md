@@ -67,4 +67,4 @@ For more information about the underlying gstlearn library, please visit [gstlea
 
 ## License
 
-This package is distributed under the GPL license.
+This package is distributed under the BSD-3 license.
