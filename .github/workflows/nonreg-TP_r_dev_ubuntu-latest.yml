@@ -76,11 +76,14 @@ jobs:
         swig-root: ${{env.SWIG_ROOT}}
         generator: "Unix Makefiles"
 
+    - name: Run sccache-cache
+      uses: mozilla-actions/sccache-action@v0.0.9
+
     - uses: actions/checkout@v4
       with:
         repository: gstlearn/gstlearn
         path: ${{env.GSTLEARN_ROOT}}
-        
+
     - name: Configure build directory for R gstlearn
       run: |
         cd ${{env.GSTLEARN_ROOT}}
@@ -91,11 +94,15 @@ jobs:
           -DBUILD_TESTING=OFF \
           -DBUILD_DOC=OFF \
           -DSWIG_EXECUTABLE=${{env.SWIG_ROOT}}/bin/swig
+      env:
+        SCCACHE_GHA_ENABLED: "true"
+        CMAKE_CC_COMPILER_LAUNCHER: sccache
+        CMAKE_CXX_COMPILER_LAUNCHER: sccache
 
-    - name: Install gstlearn
+    - name: Build and install gstlearn
       run: |
         cd ${{env.GSTLEARN_ROOT}}
-        cmake --build ${{env.BUILD_DIR}} --target r_install --parallel 3
+        cmake --build ${{env.BUILD_DIR}} --parallel 3 --target r_install
 
     - name: Install minigst
       run: |
