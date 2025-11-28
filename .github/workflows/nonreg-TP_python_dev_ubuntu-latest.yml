@@ -90,6 +90,7 @@ jobs:
       run: |
         cd ${{env.GSTLEARN_ROOT}}
         cmake --build ${{env.BUILD_DIR}} --parallel 3 --target python_install
+        rm -rf tests/ doc/
 
     - name: Fix pyproject.toml to remove gstlearn version constraint
       run: |
