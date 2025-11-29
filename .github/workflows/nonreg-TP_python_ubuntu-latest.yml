@@ -51,4 +51,18 @@ jobs:
 
     - name: Execute Python notebooks
       run: |
-        pytest --nbval-lax
+        cd python
+        run/build_ipynb_html.sh Tutorials ~/minigst_out run/run_test_ipynb.py
+
+    - name: Compress output logs
+      if: success() || failure()
+      run: |
+        cd ~/minigst_out
+        find . -type f \( -name "*.*" \) -print0 | tar -czvf TP-python-logs_dev.tar.gz --null -T -
+
+    - name: Publish output logs as artefact
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: TP-python-logs
+        path: ~/minigst_out/TP-python-logs_dev.tar.gz

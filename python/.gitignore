@@ -40,6 +40,9 @@ env/
 .pytest_cache/
 .coverage
 htmlcov/
+Scotland_Elevations.NF
+Scotland_Temperatures.NF
+Scotland_Temperatures.csv
 
 # OS
 .DS_Store

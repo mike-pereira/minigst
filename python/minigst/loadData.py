@@ -1,4 +1,3 @@
-import gstlearn.document as gdoc
 import gstlearn as gl
 import pandas as pd
 
@@ -19,19 +18,21 @@ def data(name):
 
     Examples:
         >>> import minigst as mg
-        >>> dat, grid = mg.data("Scotland") # 2 pandas dataframes
+        >>> dat, grid = mg.data("Scotland") # 2 pandas DataFrame
         >>> dbgrid = mg.data("ScotlandGrid") # a gstlearn.DbGrid object
     """
     if name == "Scotland":
-        temp_nf = gdoc.loadData("Scotland", "Scotland_Temperatures.csv")
-        dat = pd.read_csv(temp_nf, na_values="MISS")
-        temp_nf = gdoc.loadData("Scotland", "Scotland_Elevations.csv")
-        grid = pd.read_csv(temp_nf)
-        return dat, grid
+        file_path = (
+            pkg_resources.files(datafiles) / f"Scotland/Scotland_Temperatures.csv"
+        )
+        scot = pd.read_csv(file_path, na_values="MISS")
+        file_path = pkg_resources.files(datafiles) / f"Scotland/Scotland_Elevations.csv"
+        scot_grid = pd.read_csv(file_path)
+        return scot, scot_grid
     if name == "ScotlandGrid":
-        temp_nf = gdoc.loadData("Scotland", "Scotland_Elevations.NF")
-        grid = gl.DbGrid.createFromNF(temp_nf)
-        return grid
+        file_path = pkg_resources.files(datafiles) / f"Scotland/Scotland_Elevations.NF"
+        scot_grid = gl.DbGrid.createFromNF(str(file_path))
+        return scot_grid
     if name == "Meuse":
         file_path = pkg_resources.files(datafiles) / f"Meuse/meuse.csv"
         meuse = pd.read_csv(file_path)
